@@ -3,7 +3,7 @@ from typing import Callable, TYPE_CHECKING
 from BaseClasses import CollectionState
 from worlds.generic.Rules import add_rule, CollectionRule
 from .constants import TMCCrests, TMCEvent, TMCItem, TMCLocation, TMCRegion, TMCTricks, TMCWarps
-from .Options import DungeonItem, MinishCapOptions
+from .options import DHCAccess, DungeonItem, GoalVaati, MinishCapOptions
 
 if TYPE_CHECKING:
     from . import MinishCapWorld
@@ -59,7 +59,7 @@ class MinishCapRules:
             (TMCRegion.CASTLE_EXTERIOR, TMCRegion.SANCTUARY): None,
 
             (TMCRegion.SANCTUARY, TMCRegion.CASTLE_EXTERIOR): None,  # redundant
-            (TMCRegion.SANCTUARY, TMCRegion.DUNGEON_DHC_B1_WEST):
+            (TMCRegion.SANCTUARY, TMCRegion.STAINED_GLASS):
                 self.logic_and([
                     self.has_group("Elements", self.world.options.ped_elements.value),
                     self.has(TMCItem.PROGRESSIVE_SWORD, self.world.options.ped_swords.value),
@@ -273,6 +273,25 @@ class MinishCapRules:
             (TMCRegion.DUNGEON_POW_IN_4F_END, TMCRegion.DUNGEON_POW_IN_5F_END): self.has(TMCItem.ROCS_CAPE),
             (TMCRegion.DUNGEON_POW_IN_4F_END, TMCRegion.DUNGEON_POW_CLEAR):
                 self.logic_and([self.has(TMCItem.ROCS_CAPE), self.has(TMCItem.BIG_KEY_POW), self.split_rule(3)]),
+
+            (TMCRegion.STAINED_GLASS, TMCRegion.VAATI_FIGHT):
+                self.logic_option(self.world.options.dhc_access.value == DHCAccess.option_closed and
+                                  self.world.options.goal_vaati == GoalVaati.option_true,
+                                  self.logic_and([
+                                      self.has_all([TMCItem.GUST_JAR, TMCItem.CANE_OF_PACCI]),
+                                      self.dark_room(),  # Don't make people do the final boss in the dark
+                                      self.has_bow(),
+                                      self.split_rule(4),
+                                  ]),
+                                  self.no_access()),
+            (TMCRegion.STAINED_GLASS, TMCRegion.DUNGEON_DHC_B1_WEST):
+                self.logic_option(self.world.options.dhc_access.value != DHCAccess.option_closed,
+                                  None,
+                                  self.no_access()),
+            (TMCRegion.CASTLE_EXTERIOR, TMCRegion.DUNGEON_DHC_ENTRANCE):
+                self.logic_option(self.world.options.dhc_access.value == DHCAccess.option_open,
+                                  None,
+                                  self.no_access()),
 
             (TMCRegion.DUNGEON_DHC_B1_WEST, TMCRegion.SANCTUARY): None,  # Ped items
             (TMCRegion.DUNGEON_DHC_B1_WEST, TMCRegion.DUNGEON_DHC_B2): self.has(TMCItem.BOMB_BAG),
@@ -1637,6 +1656,8 @@ class MinishCapRules:
         multiworld = self.world.multiworld
 
         for region_pair, rule in self.connection_rules.items():
+            if region_pair[0] is None or region_pair[1] is None:
+                continue
             region_one = multiworld.get_region(region_pair[0], self.player)
             region_two = multiworld.get_region(region_pair[1], self.player)
             region_one.connect(region_two, rule=rule)

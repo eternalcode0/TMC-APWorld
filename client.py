@@ -6,7 +6,7 @@ from NetUtils import ClientStatus
 from Utils import async_start
 from .._bizhawk import guarded_write, RequestFailedError, read, ConnectorError, write
 from .._bizhawk.client import BizHawkClient
-from .Locations import all_locations, events, LocationData
+from .locations import all_locations, events, LocationData
 
 if TYPE_CHECKING:
     from .._bizhawk.context import BizHawkClientContext, BizHawkClientCommandProcessor
@@ -160,7 +160,7 @@ class MinishCapClient(BizHawkClient):
                                 "Please make sure the host has sent you the correct patch file,"
                                 "and that you have opened the correct ROM.")
                     raise ConnectorError("Loaded ROM is for Incorrect lobby.")
-                logger.info("Seed verified: %s", seed)
+                logger.info("Seed verified")
                 self.seed_verify = True
 
             if self.death_link_mode < 0:
