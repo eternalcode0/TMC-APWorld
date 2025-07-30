@@ -1,22 +1,56 @@
-from typing import TYPE_CHECKING, Set, Dict, List, Optional
-
 import asyncio
+import logging
+from typing import TYPE_CHECKING
 
 from NetUtils import ClientStatus
-import worlds._bizhawk as bizhawk
-import Utils
-from worlds._bizhawk.client import BizHawkClient
-from Options import Toggle
-from .Locations import all_locations, LocationData, events
-from .Items import items_by_id
+from Utils import async_start
+from .._bizhawk import guarded_write, RequestFailedError, read, ConnectorError, write
+from .._bizhawk.client import BizHawkClient
+from .locations import all_locations, events, LocationData
 
 if TYPE_CHECKING:
+    from .._bizhawk.context import BizHawkClientContext, BizHawkClientCommandProcessor
+
+logger = logging.getLogger("Client")
+
+
+def _cmd_deathlink(self: "BizHawkClientCommandProcessor"):
+    """Toggles death_link from client. Temporarily overrides yaml setting, resets after closing client."""
     from worlds._bizhawk.context import BizHawkClientContext
+    if self.ctx.game != "The Minish Cap":
+        logger.info("You cannot run this command from outside The Minish Cap")
+
+    assert isinstance(self.ctx, BizHawkClientContext)
+    client = self.ctx.client_handler
+    assert isinstance(client, MinishCapClient)
+    client.death_link_mode = 1 if client.death_link_mode != 1 else 0
+    if client.death_link_mode:
+        client.previous_death_link = self.ctx.last_death_link
+    async_start(self.ctx.update_death_link(client.death_link_mode != 0), name="Update Deathlink")
+    logger.info("Deathlink Mode: %s", get_deathlink_mode_name(client.death_link_mode))
 
 
-ROM_ADDRS = {
-    "game_identifier": (0xA0, 8, "ROM"),
-}
+def _cmd_deathlink_gameover(self: "BizHawkClientCommandProcessor"):
+    """Toggles death_link_gameover from client. Temporarily overrides yaml setting, resets after closing client."""
+    from worlds._bizhawk.context import BizHawkClientContext
+    if self.ctx.game != "The Minish Cap":
+        logger.info("You cannot run this command from outside The Minish Cap")
+
+    assert isinstance(self.ctx, BizHawkClientContext)
+    client = self.ctx.client_handler
+    assert isinstance(client, MinishCapClient)
+    client.death_link_mode = 2 if client.death_link_mode != 2 else 0
+    if client.death_link_mode:
+        client.previous_death_link = self.ctx.last_death_link
+    async_start(self.ctx.update_death_link(client.death_link_mode != 0), name="Update Deathlink")
+    logger.info("Deathlink Mode: %s", get_deathlink_mode_name(client.death_link_mode))
+
+
+def get_deathlink_mode_name(mode: int) -> str:
+    return "Disabled" if mode == 0 else "Fairy" if mode == 1 else "Game Over"
+
+
+ROM_ADDRS = {"game_identifier": (0xA0, 8, "ROM")}
 
 RAM_ADDRS = {
     # 0x00: Gameplay
@@ -61,64 +95,57 @@ class MinishCapClient(BizHawkClient):
     game = "The Minish Cap"
     system = "GBA"
     patch_suffix = ".aptmc"
-    local_checked_locations: Set[int]
-    location_name_to_id: Dict[str, int]
-    location_by_room_area: Dict[int, List[LocationData]]
+    location_by_id: dict[int, LocationData]
     room: int
+    death_link_mode = -1
     previous_death_link = 0
     """Timestamp of when the last deathlink was processed"""
     death_link_ready = False
     """Whether the player is expected to be in a death state"""
     event_data = list(map(lambda e: (e[0], 1, "EWRAM"), events.keys()))
     events_sent = set()
-    player_name: Optional[str]
+    player_name: str | None
     seed_verify = False
 
     def __init__(self) -> None:
         super().__init__()
-        self.location_name_to_id = {loc_data.name: loc_data.ram_addr for loc_data in all_locations}
-        self.local_checked_locations = set()
-        self.location_by_room_area = {}
+        self.location_by_id = {loc_data.id: loc_data for loc_data in all_locations}
         self.room = 0x0000
-
-        for loc in all_locations:
-            if loc.room_area in self.location_by_room_area:
-                self.location_by_room_area[loc.room_area].append(loc)
-            else:
-                self.location_by_room_area[loc.room_area] = [loc]
 
     async def validate_rom(self, ctx: "BizHawkClientContext") -> bool:
         try:
             # Check ROM name/patch version
-            rom_name_bytes = (await bizhawk.read(ctx.bizhawk_ctx, [ROM_ADDRS["game_identifier"]]))[0]
+            rom_name_bytes = (await read(ctx.bizhawk_ctx, [ROM_ADDRS["game_identifier"]]))[0]
             rom_name = bytes([byte for byte in rom_name_bytes if byte != 0]).decode("ascii")
             if rom_name != "GBAZELDA":
                 return False
+
+            if "deathlink" in ctx.command_processor.commands:
+                ctx.command_processor.commands.pop("deathlink")
+            if "deathlink_gameover" in ctx.command_processor.commands:
+                ctx.command_processor.commands.pop("deathlink_gameover")
         except UnicodeDecodeError:
             return False
-        except bizhawk.RequestFailedError:
+        except RequestFailedError:
             return False
 
         ctx.game = self.game
         ctx.items_handling = 0b101
         ctx.want_slot_data = True
         ctx.watcher_timeout = 0.5
-        name_bytes = (await bizhawk.read(ctx.bizhawk_ctx, [(0x000600, 16, "ROM")]))[0]
+        name_bytes = (await read(ctx.bizhawk_ctx, [(0x000600, 16, "ROM")]))[0]
         name = bytes([byte for byte in name_bytes if byte != 0]).decode("UTF-8")
         self.player_name = name
+
+        ctx.command_processor.commands["deathlink"] = _cmd_deathlink
+        ctx.command_processor.commands["deathlink_gameover"] = _cmd_deathlink_gameover
 
         return True
 
     async def set_auth(self, ctx: "BizHawkClientContext") -> None:
         ctx.auth = self.player_name
 
-    def on_package(self, ctx, cmd, args) -> None:
-        if cmd == "RoomInfo":
-            ctx.seed_name = args["seed_name"]
-
     async def game_watcher(self, ctx: "BizHawkClientContext") -> None:
-        from CommonClient import logger
-
         if ctx.server is None or ctx.server.socket.closed or ctx.slot_data is None:
             return
 
@@ -137,29 +164,40 @@ class MinishCapClient(BizHawkClient):
             return
 
         try:
-            if ctx.seed_name is None:
+            if ctx.server_seed_name is None:
                 return
             if not self.seed_verify:
-                seed = await bizhawk.read(ctx.bizhawk_ctx, [(0x000620, len(ctx.seed_name), "ROM")])
+                seed = await read(ctx.bizhawk_ctx, [(0x000620, len(ctx.server_seed_name), "ROM")])
                 seed = seed[0].decode("UTF-8")
-                if seed not in ctx.seed_name:
-                    logger.info(
-                        "ERROR: The ROM you loaded is for a different game of AP. "
-                        "Please make sure the host has sent you the correct patch file,"
-                        "and that you have opened the correct ROM."
-                    )
-                    raise bizhawk.ConnectorError("Loaded ROM is for Incorrect lobby.")
+                if seed not in ctx.server_seed_name:
+                    logger.info("ERROR: The ROM you loaded is for a different game of AP. "
+                                "Please make sure the host has sent you the correct patch file,"
+                                "and that you have opened the correct ROM.")
+                    raise ConnectorError("Loaded ROM is for Incorrect lobby.")
+                logger.info("Seed verified")
                 self.seed_verify = True
 
+            if self.death_link_mode < 0:
+                if ctx.slot_data.get("death_link", 0) == 0:
+                    self.death_link_mode = 0
+                    await ctx.update_death_link(False)
+                elif ctx.slot_data.get("death_link_gameover", 0) == 0:
+                    self.death_link_mode = 1
+                    self.previous_death_link = ctx.last_death_link
+                    await ctx.update_death_link(True)
+                else:
+                    self.death_link_mode = 2
+                    self.previous_death_link = ctx.last_death_link
+                    await ctx.update_death_link(True)
+                logger.info("Deathlink Mode: %s", get_deathlink_mode_name(self.death_link_mode))
+
             # Handle giving the player items
-            read_result = await bizhawk.read(ctx.bizhawk_ctx, [
-                RAM_ADDRS["game_task"], # Current state of game (is the player actually in-game?)
-                RAM_ADDRS["task_substate"], # Is there any room transitions or anything similar
+            read_result = await read(ctx.bizhawk_ctx, [
+                RAM_ADDRS["game_task"],  # Current state of game (is the player actually in-game?)
+                RAM_ADDRS["task_substate"],  # Is there any room transitions or anything similar
                 RAM_ADDRS["room_area_id"],
                 RAM_ADDRS["action_state"],
                 RAM_ADDRS["received_index"],
-                RAM_ADDRS["vaati_address"],
-                RAM_ADDRS["pedestal_address"],
                 RAM_ADDRS["link_health"],
                 RAM_ADDRS["gameover"],
             ])
@@ -171,50 +209,45 @@ class MinishCapClient(BizHawkClient):
             room_area_id = int.from_bytes(read_result[2], "little")
             action_state = read_result[3][0]
             received_index = (read_result[4][0] << 8) + read_result[4][1]
-            vaati_address = read_result[5][0]
-            pedestal_address = read_result[6][0]
-            link_health = int.from_bytes(read_result[7], "little")
-            gameover = bool.from_bytes(read_result[8])
+            link_health = int.from_bytes(read_result[5], "little")
+            gameover = bool.from_bytes(read_result[6])
 
             # Check for goal, since vaati's defeat triggers a cutscene this has to be checked before the next if
             # specifically because it sets the game_task to 0x04
-            if not ctx.finished_game:
-                if ctx.slot_data["GoalVaati"] == 1 and vaati_address | 0x02 == vaati_address:
-                    await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
-                elif ctx.slot_data["GoalVaati"] == 0 and pedestal_address | 0x01 == pedestal_address:
-                    await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
+            if not ctx.finished_game and game_task == 0x04:
+                await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
 
             # Only process items/locations if the player is in "normal" gameplay
             if game_task == 0x02 or task_substate == 0x02:
                 await self.handle_item_receiving(ctx, received_index)
-                await self.handle_location_sending(ctx, room_area_id)
+                await self.handle_location_sending(ctx)
                 await self.handle_event_setting(ctx)
 
-            # Death link handling only if in normal gameplay (0x02) or gamemover (0x03)
-            if game_task in range(0x02, 0x04) and ctx.slot_data.get("DeathLink", 0) == 1:
+            # Death link handling only if in normal gameplay (0x02) or gameover (0x03)
+            if game_task in range(0x02, 0x04) and self.death_link_mode > 0:
                 await self.handle_death_link(ctx, link_health, gameover, action_state)
 
             # Player moved to a new room that isn't the pause menu. Pause menu `room_area_id` == 0x0000
             if task_substate == 0x02 and self.room != room_area_id:
                 await self.handle_room_change(ctx, room_area_id)
 
-        except bizhawk.RequestFailedError:
+        except RequestFailedError:
             # The connector didn't respond. Exit handler and return to main loop to reconnect
             pass
 
-    async def handle_item_receiving(self, ctx: "BizHawkClientContext", received_index: int) -> None:
+    @staticmethod
+    async def handle_item_receiving(ctx: "BizHawkClientContext", received_index: int) -> None:
         # Read all pending receive items and dump into game ram
         for i in range(len(ctx.items_received) - received_index):
             write_result = False
-            item = items_by_id[ctx.items_received[received_index + i].item]
+            item_id = ctx.items_received[received_index + i].item
+            pid, sid = item_id >> 8, item_id & 0xFF
             total = 0
             while not write_result:
                 # Write to the address if it hasn't changed
-                write_result = await bizhawk.guarded_write(
-                    ctx.bizhawk_ctx,
-                    [(0x3FF10, [item.byte_ids[0], item.byte_ids[1]], "EWRAM")],
-                    [(0x3FF10, [0x0, 0x0], "EWRAM"), (0x2A4A, [1], "EWRAM")]
-                )
+                write_result = await guarded_write(ctx.bizhawk_ctx,
+                                                   [(0x3FF10, [pid, sid], "EWRAM")],
+                                                   [(0x3FF10, [0x0, 0x0], "EWRAM"), (0x2A4A, [1], "EWRAM")])
 
                 await asyncio.sleep(0.05)
                 total += 0.05
@@ -224,34 +257,25 @@ class MinishCapClient(BizHawkClient):
                     break
             if not write_result:
                 break
-            await bizhawk.write(
-                ctx.bizhawk_ctx,
-                [
-                    (RAM_ADDRS["received_index"][0], [(received_index + i + 1) // 0x100, (received_index + i + 1) % 0x100], "EWRAM"),
-                ]
-            )
+            await write(ctx.bizhawk_ctx, [(
+                RAM_ADDRS["received_index"][0],
+                [(received_index + i + 1) // 0x100, (received_index + i + 1) % 0x100],
+                "EWRAM",
+            )])
 
-    async def handle_location_sending(self, ctx: "BizHawkClientContext", room_area_id: int) -> None:
-        locs_to_send = set()
+    async def handle_location_sending(self, ctx: "BizHawkClientContext") -> None:
         # Read all location flags in area and add to pending location checks if updates
-        if room_area_id in self.location_by_room_area:
-            for loc in self.location_by_room_area[room_area_id]:
-                if loc.id in self.local_checked_locations or loc.id not in ctx.server_locations:
-                    continue
-                loc_bytes = await bizhawk.read(ctx.bizhawk_ctx, [(loc.ram_addr[0], 1, "EWRAM")])
-                if loc_bytes[0][0] | loc.ram_addr[1] == loc_bytes[0][0]:
-                    # Add the the pending send list and the local checked locations to skip checking again
-                    locs_to_send.add(loc.id)
-                    self.local_checked_locations.add(loc.id)
+        locations_to_read = [self.location_by_id[loc_id] for loc_id in ctx.missing_locations]
+        location_reads = [(loc.ram_addr[0], 1, "EWRAM") for loc in locations_to_read]
+        loc_bytes = await read(ctx.bizhawk_ctx, location_reads)
+        locs_to_send = [locations_to_read[i].id for i, loc_ram in enumerate(loc_bytes)
+                        if loc_ram[0] | locations_to_read[i].ram_addr[1] == loc_ram[0]]
         # Send location checks
         if len(locs_to_send) > 0:
-            await ctx.send_msgs([{"cmd": "LocationChecks", "locations": list(locs_to_send)}])
+            await ctx.send_msgs([{"cmd": "LocationChecks", "locations": locs_to_send}])
 
-    async def handle_death_link(self, ctx: "BizHawkClientContext", link_health: int, game_over: bool, action_state: int) -> None:
-        if "DeathLink" not in ctx.tags:
-            await ctx.update_death_link(True)
-            self.previous_death_link = ctx.last_death_link
-
+    async def handle_death_link(self, ctx: "BizHawkClientContext", link_health: int, game_over: bool,
+                                action_state: int) -> None:
         # If we processed a death on a previous loop
         if not self.death_link_ready:
             # Wait until player is not in a game_over state
@@ -260,22 +284,18 @@ class MinishCapClient(BizHawkClient):
             # And/or return out of processing
             return
 
-        gameover_mode = ctx.slot_data.get("DeathLinkGameover", 0) == 1
+        gameover_mode = self.death_link_mode == 2
 
-        # If a new death link has come in
+        # If a new death link has come in  different from the last
         if self.previous_death_link != ctx.last_death_link:
-            write_list = []
             if gameover_mode:
                 write_list = [(RAM_ADDRS["gameover"][0], [1], "IWRAM")]
             else:
                 write_list = [(RAM_ADDRS["link_health"][0], [0], "IWRAM")]
 
             # Attempt to kill them if they're safe
-            if await bizhawk.guarded_write(
-                ctx.bizhawk_ctx,
-                write_list,
-                [(0x2A4A, [1], "EWRAM")] # Custom "Player safe" address
-            ):
+            if await guarded_write(ctx.bizhawk_ctx, write_list, [(0x2A4A, [1], "EWRAM")]):
+                # Custom "Player safe" address
                 # The kill was successful, record the player is dead for the next loop
                 self.death_link_ready = False
                 # and save the fact that we successfully killed for that deathlink
@@ -298,38 +318,25 @@ class MinishCapClient(BizHawkClient):
 
     async def handle_room_change(self, ctx: "BizHawkClientContext", room_area_id) -> None:
         # Location Scouting
-        if self.room in self.location_by_room_area:
-            location_scouts = set()
-            for loc in self.location_by_room_area[self.room]:
-                if loc.id in self.local_checked_locations or not loc.scoutable:
-                    continue
-
-                location_scouts.add(loc.id)
-
-            if len(location_scouts) > 0:
-                await ctx.send_msgs(
-                    [{
-                        "cmd": "LocationScouts",
-                        "locations": list(location_scouts),
-                        "create_as_hint": 2
-                    }]
-                )
+        location_scouts = [loc_id for loc_id in ctx.missing_locations
+                           if self.location_by_id[loc_id].room_area == self.room
+                           and self.location_by_id[loc_id].scoutable]
+        if len(location_scouts) > 0:
+            await ctx.send_msgs([{"cmd": "LocationScouts", "locations": location_scouts, "create_as_hint": 2}])
 
         self.room = room_area_id
         # Room sync for poptracker tab tracking
-        await ctx.send_msgs(
-            [{
-                "cmd": "Set",
-                "key": f"tmc_room_{ctx.team}_{ctx.slot}",
-                "default": 0,
-                "want_reply": False,
-                "operations": [{"operation": "replace", "value": room_area_id}]
-            }]
-        )
+        await ctx.send_msgs([{
+            "cmd": "Set",
+            "key": f"tmc_room_{ctx.team}_{ctx.slot}",
+            "default": 0,
+            "want_reply": False,
+            "operations": [{"operation": "replace", "value": room_area_id}]
+        }])
 
     async def handle_event_setting(self, ctx: "BizHawkClientContext") -> None:
         # Batch all events together into one read
-        read_events = await bizhawk.read(ctx.bizhawk_ctx, self.event_data)
+        read_events = await read(ctx.bizhawk_ctx, self.event_data)
 
         if read_events is None:
             return
@@ -338,12 +345,10 @@ class MinishCapClient(BizHawkClient):
             if event_name in self.events_sent or read_events[i][0] | address_pair[1] != read_events[i][0]:
                 continue
             self.events_sent.add(event_name)
-            await ctx.send_msgs(
-                [{
-                    "cmd": "Set",
-                    "key": f"tmc_{event_name}_{ctx.team}_{ctx.slot}",
-                    "default": 0,
-                    "want_reply": False,
-                    "operations": [{"operation": "replace", "value": 1}]
-                }]
-            )
+            await ctx.send_msgs([{
+                "cmd": "Set",
+                "key": f"tmc_{event_name}_{ctx.team}_{ctx.slot}",
+                "default": 0,
+                "want_reply": False,
+                "operations": [{"operation": "replace", "value": 1}]
+            }])
