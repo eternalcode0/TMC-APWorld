@@ -52,30 +52,34 @@ tmc_logger = logging.getLogger("The Minish Cap")
 
 
 class MinishCapWebWorld(WebWorld):
-    """ Minish Cap Webpage configuration """
+    """Minish Cap Webpage configuration"""
 
     theme = "grassFlowers"
     bug_report_page = "https://github.com/eternalcode0/Archipelago/issues"
     option_groups = OPTION_GROUPS
     options_presets = PRESETS
     tutorials = [
-        Tutorial(tutorial_name="Setup Guide",
-                 description="A guide to setting up The Legend of Zelda: The Minish Cap for Archipelago.",
-                 language="English",
-                 file_name="setup_en.md",
-                 link="setup/en",
-                 authors=["eternalcode"]),
-        Tutorial(tutorial_name="Setup Guide",
-                 description="A guide to setting up The Legend of Zelda: The Minish Cap for Archipelago.",
-                 language="Français",
-                 file_name="setup_fr.md",
-                 link="setup/fr",
-                 authors=["Deoxis9001"])
+        Tutorial(
+            tutorial_name="Setup Guide",
+            description="A guide to setting up The Legend of Zelda: The Minish Cap for Archipelago.",
+            language="English",
+            file_name="setup_en.md",
+            link="setup/en",
+            authors=["eternalcode"],
+        ),
+        Tutorial(
+            tutorial_name="Setup Guide",
+            description="A guide to setting up The Legend of Zelda: The Minish Cap for Archipelago.",
+            language="Français",
+            file_name="setup_fr.md",
+            link="setup/fr",
+            authors=["Deoxis9001"],
+        ),
     ]
 
 
 class MinishCapSettings(settings.Group):
-    """ Settings for the launcher """
+    """Settings for the launcher"""
 
     class RomFile(settings.UserFilePath):
         """File name of the Minish Cap EU rom"""
@@ -89,7 +93,7 @@ class MinishCapSettings(settings.Group):
 
 
 class MinishCapWorld(World):
-    """ Randomizer methods/data for generation """
+    """Randomizer methods/data for generation"""
 
     game = "The Minish Cap"
     web = MinishCapWebWorld()
@@ -129,8 +133,7 @@ class MinishCapWorld(World):
         if options.figurine_amount < options.ped_figurines:
             options.figurine_amount = options.ped_figurines
 
-        enabled_pools.update([f"cucco:{round_num}" for round_num in range(
-            10, 10 - options.cucco_rounds.value, -1)])
+        enabled_pools.update([f"cucco:{round_num}" for round_num in range(10, 10 - options.cucco_rounds.value, -1)])
         enabled_pools.update([f"goron:{round_num}" for round_num in range(1, options.goron_sets.value + 1)])
 
         # Default dhc_access to closed when it's been set to ped with goal vaati disabled.
@@ -165,15 +168,15 @@ class MinishCapWorld(World):
             self.disabled_locations.add(TMCLocation.HYLIA_DOJO_NPC)
 
         # Check if the settings require more dungeons than are included
-        self.disabled_dungeons = set(dungeon for dungeon in ["DWS", "CoF", "FoW", "ToD", "RC", "PoW"]
-                                     if location_groups[dungeon].issubset(options.exclude_locations.value))
+        self.disabled_dungeons = set(
+            dungeon
+            for dungeon in ["DWS", "CoF", "FoW", "ToD", "RC", "PoW"]
+            if location_groups[dungeon].issubset(options.exclude_locations.value)
+        )
 
         if options.ped_dungeons > 6 - len(self.disabled_dungeons):
             error_message = "Slot '%s' has required %d/6 dungeons to goal but found %d excluded. "
-            raise OptionError(error_message % (
-                self.player_name,
-                options.ped_dungeons,
-                len(self.disabled_dungeons)))
+            raise OptionError(error_message % (self.player_name, options.ped_dungeons, len(self.disabled_dungeons)))
 
     # push start_inventory and start_inventory_from_pool into precollected_items
 
@@ -198,43 +201,62 @@ class MinishCapWorld(World):
         # Force vanilla elements into their pre-determined locations (must happen before pre_fill for plando)
         if self.options.shuffle_elements.value is ShuffleElements.option_vanilla:
             # Place elements into ordered locations, don't shuffle
-            location_names = [TMCLocation.DEEPWOOD_PRIZE, TMCLocation.COF_PRIZE, TMCLocation.DROPLETS_PRIZE,
-                              TMCLocation.PALACE_PRIZE]
+            location_names = [
+                TMCLocation.DEEPWOOD_PRIZE,
+                TMCLocation.COF_PRIZE,
+                TMCLocation.DROPLETS_PRIZE,
+                TMCLocation.PALACE_PRIZE,
+            ]
             item_names = [TMCItem.EARTH_ELEMENT, TMCItem.FIRE_ELEMENT, TMCItem.WATER_ELEMENT, TMCItem.WIND_ELEMENT]
             for location_name, item_name in zip(location_names, item_names):
                 loc = self.get_location(location_name)
                 if loc.item is not None:
-                    raise FillError(f"Slot '{self.player_name}' used 'shuffle_elements: vanilla' but location "
-                                    f"'{location_name}' was already filled with '{loc.item.name}'")
+                    raise FillError(
+                        f"Slot '{self.player_name}' used 'shuffle_elements: vanilla' but location "
+                        f"'{location_name}' was already filled with '{loc.item.name}'"
+                    )
                 loc.place_locked_item(self.create_item(item_name))
         elif self.options.shuffle_elements.value is ShuffleElements.option_dungeon_prize:
             # Get unfilled prize locations, shuffle, and place each element
-            location_names = [TMCLocation.DEEPWOOD_PRIZE, TMCLocation.COF_PRIZE, TMCLocation.FORTRESS_PRIZE,
-                              TMCLocation.DROPLETS_PRIZE, TMCLocation.PALACE_PRIZE, TMCLocation.CRYPT_PRIZE]
+            location_names = [
+                TMCLocation.DEEPWOOD_PRIZE,
+                TMCLocation.COF_PRIZE,
+                TMCLocation.FORTRESS_PRIZE,
+                TMCLocation.DROPLETS_PRIZE,
+                TMCLocation.PALACE_PRIZE,
+                TMCLocation.CRYPT_PRIZE,
+            ]
             locations = list(self.multiworld.get_unfilled_locations_for_players(location_names, [self.player]))
             if len(locations) < 4:
-                raise FillError(f"Slot '{self.player_name}' used 'shuffle_elements: dungeon_prize' but only "
-                                f"{len(locations)}/6 prize locations are available to fill the 4 elements")
+                raise FillError(
+                    f"Slot '{self.player_name}' used 'shuffle_elements: dungeon_prize' but only "
+                    f"{len(locations)}/6 prize locations are available to fill the 4 elements"
+                )
             element_locations = self.random.sample(locations, k=4)
             item_names = [TMCItem.EARTH_ELEMENT, TMCItem.FIRE_ELEMENT, TMCItem.WATER_ELEMENT, TMCItem.WIND_ELEMENT]
             for location, item_name in zip(element_locations, item_names):
                 location.place_locked_item(self.create_item(item_name))
-        if self.options.non_element_dungeons.value == NonElementDungeons.option_excluded and \
-                self.options.shuffle_elements.on_prize and \
-                self.options.ped_dungeons.value <= 4:
-            locations = list(loc.name for loc in self.multiworld.get_unfilled_locations_for_players(
-                location_names, [self.player]))
+        if (
+            self.options.non_element_dungeons.value == NonElementDungeons.option_excluded
+            and self.options.shuffle_elements.on_prize
+            and self.options.ped_dungeons.value <= 4
+        ):
+            locations = list(
+                loc.name for loc in self.multiworld.get_unfilled_locations_for_players(location_names, [self.player])
+            )
             prize_name_to_region = {
                 TMCLocation.DEEPWOOD_PRIZE: "DWS",
                 TMCLocation.COF_PRIZE: "CoF",
                 TMCLocation.FORTRESS_PRIZE: "FoW",
                 TMCLocation.DROPLETS_PRIZE: "ToD",
                 TMCLocation.PALACE_PRIZE: "PoW",
-                TMCLocation.CRYPT_PRIZE: "RC"}
+                TMCLocation.CRYPT_PRIZE: "RC",
+            }
             self.options.exclude_locations.value.update(
                 region_locations
                 for prize_name in locations
-                for region_locations in location_groups[prize_name_to_region[prize_name]])
+                for region_locations in location_groups[prize_name_to_region[prize_name]]
+            )
 
         # Add in all progression and useful items
         self.item_pool = get_item_pool(self)
@@ -244,12 +266,14 @@ class MinishCapWorld(World):
         self.multiworld.itempool.extend(self.item_pool)
         filler = [self.create_filler() for _ in range(total_locations - len(self.item_pool) - len(self.pre_fill_pool))]
         # Check for restrictive settings (usually caused by non_element_dungeons: excluded)
-        if self.multiworld.players == 1 and len(self.options.exclude_locations.value) > len(filler):
-            error_message = ("Restrictive settings for slot '%s'! Not enough filler for excluded locations. "
-            "Geneartion *may* work with more attempts but for better odds try adding more locations to shuffle, "
-            "removing extra items such as figurines & heart containers/pieces, "
-            "or setting non_element_dungeons to standard. "
-            "This error won't show for multiworlds with more than one slot but may still cause rare generation issues.")
+        if len(self.options.exclude_locations.value) > len(filler):
+            error_message = (
+                "Restrictive settings for slot '%s'! Not enough filler for excluded locations. "
+                "Geneartion *may* work with more attempts but for better odds try adding more locations to shuffle, "
+                "removing extra items such as figurines & heart containers/pieces, "
+                "or setting non_element_dungeons to standard. "
+                "This error won't show for multiworlds with more than one slot but may still cause rare generation issues."
+            )
             raise OptionError(error_message % self.player_name)
         self.multiworld.itempool.extend(filler)
 
@@ -297,25 +321,35 @@ class MinishCapWorld(World):
         patch.write_file("base_patch.bsdiff4", pkgutil.get_data(__name__, "data/basepatch.bsdiff"))
         write_tokens(self, patch)
         out_file_name = self.multiworld.get_out_file_name_base(self.player)
-        patch.write(os.path.join(output_directory, f"{out_file_name}" f"{patch.patch_file_ending}"))
+        patch.write(os.path.join(output_directory, f"{out_file_name}{patch.patch_file_ending}"))
 
     def extend_hint_information(self, hint_data: dict[int, dict[int, str]]):
         pass
 
     def fill_slot_data(self) -> dict[str, any]:
-        data = {"DeathLink": self.options.death_link.value, "DeathLinkGameover": self.options.death_link_gameover.value,
-                "RupeeSpot": self.options.rupeesanity.value,
-                "GoalVaati": int(self.options.goal.value == Goal.option_vaati)}
+        data = {
+            "DeathLink": self.options.death_link.value,
+            "DeathLinkGameover": self.options.death_link_gameover.value,
+            "RupeeSpot": self.options.rupeesanity.value,
+            "GoalVaati": int(self.options.goal.value == Goal.option_vaati),
+        }
 
         data |= self.options.as_dict(*SLOT_DATA_OPTIONS, casing="snake")
         data |= get_option_data(self)
 
         # Setup prize location data for tracker to show element hints
-        prizes = {TMCLocation.COF_PRIZE: "prize_cof", TMCLocation.CRYPT_PRIZE: "prize_rc",
-                  TMCLocation.PALACE_PRIZE: "prize_pow", TMCLocation.DEEPWOOD_PRIZE: "prize_dws",
-                  TMCLocation.DROPLETS_PRIZE: "prize_tod", TMCLocation.FORTRESS_PRIZE: "prize_fow"}
-        if self.options.shuffle_elements.value in {ShuffleElements.option_dungeon_prize,
-                                                   ShuffleElements.option_vanilla}:
+        prizes = {
+            TMCLocation.COF_PRIZE: "prize_cof",
+            TMCLocation.CRYPT_PRIZE: "prize_rc",
+            TMCLocation.PALACE_PRIZE: "prize_pow",
+            TMCLocation.DEEPWOOD_PRIZE: "prize_dws",
+            TMCLocation.DROPLETS_PRIZE: "prize_tod",
+            TMCLocation.FORTRESS_PRIZE: "prize_fow",
+        }
+        if self.options.shuffle_elements.value in {
+            ShuffleElements.option_dungeon_prize,
+            ShuffleElements.option_vanilla,
+        }:
             for loc_name, data_name in prizes.items():
                 placed_item = self.get_location(loc_name).item.name
                 if placed_item in self.item_name_groups["Elements"]:
@@ -357,7 +391,9 @@ class MinishCapWorld(World):
     def get_filler_item_name(self) -> str:
         if self.filler_items_distribution == None:
             self.init_filler_items_distribution()
-        return self.random.choices(tuple(self.filler_items_distribution), weights=self.filler_items_distribution.values())[0]
+        return self.random.choices(
+            tuple(self.filler_items_distribution), weights=self.filler_items_distribution.values()
+        )[0]
 
     def get_pre_fill_items(self) -> list[Item]:
         return self.pre_fill_pool

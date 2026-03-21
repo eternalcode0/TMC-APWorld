@@ -1,0 +1,2 @@
+[environment]
+extra-paths = ["../Archipelago"]  # Change to your local installation of Archipelago
