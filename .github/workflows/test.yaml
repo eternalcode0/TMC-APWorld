@@ -4,7 +4,7 @@ jobs:
     tests:
         runs-on: ubuntu-latest
         steps:
-            - uses: Eijebong/ap-actions/ap-tests@main
+            - uses: eternalcode0/ap-actions/ap-tests@chore/ap-0-6-7-update
               with:
                   apworld-path: tmc
                   ap-version: "0.6.7-rc1" # Can also be "latest" to always get the latest, stable release of AP.
