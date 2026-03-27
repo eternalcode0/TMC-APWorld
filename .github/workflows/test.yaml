@@ -12,7 +12,7 @@ jobs:
     fuzz:
         runs-on: ubuntu-latest
         steps:
-            - uses: Eijebong/ap-actions/fuzz@main
+            - uses: eternalcode0/ap-actions/fuzz@main
               with:
                   apworld-path: tmc
                   ap-version: "0.6.7-rc1" # Can also be "latest" to always get the latest, stable release of AP.
@@ -20,3 +20,15 @@ jobs:
                   runs: 500 # This is optional
                   yamls-per-run: 1 # This is optional
                   dump-ignored: false # This is optional
+    fuzz-determinism:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: eternalcode0/ap-actions/fuzz@feat/fuzz-hooks
+              with:
+                  apworld-path: tmc
+                  ap-version: "0.6.7-rc1" # Can also be "latest" to always get the latest, stable release of AP.
+                  python-version: "3.11"
+                  runs: 500 # This is optional
+                  yamls-per-run: 1 # This is optional
+                  dump-ignored: false # This is optional
+                  hook: hooks/determinism:Hook
