@@ -8,5 +8,5 @@ jobs:
         uses: Eijebong/ap-actions/.github/workflows/release-apworld.yml@main
         with:
             apworld-path: tmc
-            ap-version: "0.6.7-rc1"
+            ap-version: "0.6.7"
             python-version: "3.11"

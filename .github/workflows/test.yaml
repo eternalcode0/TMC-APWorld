@@ -7,7 +7,7 @@ jobs:
             - uses: Eijebong/ap-actions/ap-tests@main
               with:
                   apworld-path: tmc
-                  ap-version: "0.6.7-rc1" # Can also be "latest" to always get the latest, stable release of AP.
+                  ap-version: "0.6.7" # Can also be "latest" to always get the latest, stable release of AP.
                   python-version: "3.11"
     fuzz:
         runs-on: ubuntu-latest
@@ -15,7 +15,7 @@ jobs:
             - uses: Eijebong/ap-actions/fuzz@main
               with:
                   apworld-path: tmc
-                  ap-version: "0.6.7-rc1" # Can also be "latest" to always get the latest, stable release of AP.
+                  ap-version: "0.6.7" # Can also be "latest" to always get the latest, stable release of AP.
                   python-version: "3.11"
                   runs: 500 # This is optional
                   yamls-per-run: 1 # This is optional
