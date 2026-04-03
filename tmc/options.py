@@ -319,11 +319,11 @@ class DungeonWarp(Choice):
 
     @property
     def has_blue(self) -> bool:
-        return self.value & self.option_blue
+        return bool(self.value & self.option_blue)
 
     @property
     def has_red(self) -> bool:
-        return self.value & self.option_red
+        return bool(self.value & self.option_red)
 
 
 class WarpDWS(DungeonWarp):
@@ -764,29 +764,29 @@ class FillerItemsDistribution(ItemDict):
     visibility = Visibility.complex_ui | Visibility.template
     display_name = "Filler Items Distribution"
     default = {
-        TMCItem.RUPEES_1: 36,
-        TMCItem.RUPEES_5: 49,
-        TMCItem.RUPEES_20: 53,
-        TMCItem.RUPEES_50: 25,
-        TMCItem.RUPEES_100: 18,
-        TMCItem.RUPEES_200: 15,
-        TMCItem.HEART_REFILL: 29,
-        TMCItem.BOMB_REFILL_5: 34,
-        TMCItem.BOMB_REFILL_10: 22,
-        TMCItem.BOMB_REFILL_30: 16,
-        TMCItem.ARROW_REFILL_5: 34,
-        TMCItem.ARROW_REFILL_10: 22,
-        TMCItem.ARROW_REFILL_30: 16,
-        TMCItem.TRAP_ICE: 8,
-        TMCItem.TRAP_FIRE: 8,
-        TMCItem.TRAP_ZAP: 8,
-        TMCItem.TRAP_BOMB: 8,
-        TMCItem.TRAP_MONEY: 5,
-        TMCItem.TRAP_STINK: 8,
-        TMCItem.TRAP_ROPE: 8,
-        TMCItem.TRAP_BAT: 8,
-        TMCItem.TRAP_LIKE: 8,
-        TMCItem.TRAP_CURSE: 5,
+        TMCItem.RUPEES_1.value: 36,
+        TMCItem.RUPEES_5.value: 49,
+        TMCItem.RUPEES_20.value: 53,
+        TMCItem.RUPEES_50.value: 25,
+        TMCItem.RUPEES_100.value: 18,
+        TMCItem.RUPEES_200.value: 15,
+        TMCItem.HEART_REFILL.value: 29,
+        TMCItem.BOMB_REFILL_5.value: 34,
+        TMCItem.BOMB_REFILL_10.value: 22,
+        TMCItem.BOMB_REFILL_30.value: 16,
+        TMCItem.ARROW_REFILL_5.value: 34,
+        TMCItem.ARROW_REFILL_10.value: 22,
+        TMCItem.ARROW_REFILL_30.value: 16,
+        TMCItem.TRAP_ICE.value: 8,
+        TMCItem.TRAP_FIRE.value: 8,
+        TMCItem.TRAP_ZAP.value: 8,
+        TMCItem.TRAP_BOMB.value: 8,
+        TMCItem.TRAP_MONEY.value: 5,
+        TMCItem.TRAP_STINK.value: 8,
+        TMCItem.TRAP_ROPE.value: 8,
+        TMCItem.TRAP_BAT.value: 8,
+        TMCItem.TRAP_LIKE.value: 8,
+        TMCItem.TRAP_CURSE.value: 5,
     }
 
 
@@ -847,6 +847,83 @@ class RemoteItems(Toggle):
     rich_text_doc = True
 
 
+class DWSKeyMultiplier(Range):
+    """How many Small Keys (DWS) should be added to your inventory each time you get 1?"""
+
+    display_name = "DWS Key Multiplier"
+    visibility = Visibility.none
+
+    default = 1
+    range_start = 1
+    range_end = 4
+
+
+class CoFKeyMultiplier(Range):
+    """How many Small Keys (CoF) should be added to your inventory each time you get 1?"""
+
+    display_name = "CoF Key Multiplier"
+    visibility = Visibility.none
+
+    default = 1
+    range_start = 1
+    range_end = 2
+
+
+class FoWKeyMultiplier(Range):
+    """How many Small Keys (FoW) should be added to your inventory each time you get 1?"""
+
+    display_name = "FoW Key Multiplier"
+    visibility = Visibility.none
+
+    default = 1
+    range_start = 1
+    range_end = 4
+
+
+class ToDKeyMultiplier(Range):
+    """How many Small Keys (ToD) should be added to your inventory each time you get 1?"""
+
+    display_name = "ToD Key Multiplier"
+    visibility = Visibility.none
+
+    default = 1
+    range_start = 1
+    range_end = 4
+
+
+class RCKeyMultiplier(Range):
+    """How many Small Keys (RC) should be added to your inventory each time you get 1?"""
+
+    display_name = "RC Key Multiplier"
+    visibility = Visibility.none
+
+    default = 1
+    range_start = 1
+    range_end = 3
+
+
+class PoWKeyMultiplier(Range):
+    """How many Small Keys (PoW) should be added to your inventory each time you get 1?"""
+
+    display_name = "PoW Key Multiplier"
+    visibility = Visibility.none
+
+    default = 1
+    range_start = 1
+    range_end = 6
+
+
+class DHCKeyMultiplier(Range):
+    """How many Small Keys (DHC) should be added to your inventory each time you get 1?"""
+
+    display_name = "DHC Key Multiplier"
+    visibility = Visibility.none
+
+    default = 1
+    range_start = 1
+    range_end = 5
+
+
 @dataclass
 class MinishCapOptions(PerGameCommonOptions):
     # AP settings / DL settings
@@ -902,6 +979,14 @@ class MinishCapOptions(PerGameCommonOptions):
     starting_hearts: StartingHearts
     heart_containers: HeartContainerAmount
     piece_of_hearts: PieceOfHeartAmount
+    # Multipliers
+    dws_key_multiplier: DWSKeyMultiplier
+    cof_key_multiplier: CoFKeyMultiplier
+    fow_key_multiplier: FoWKeyMultiplier
+    tod_key_multiplier: ToDKeyMultiplier
+    rc_key_multiplier: RCKeyMultiplier
+    pow_key_multiplier: PoWKeyMultiplier
+    dhc_key_multiplier: DHCKeyMultiplier
     # Logic Settings
     dungeon_warp_dws: WarpDWS
     dungeon_warp_cof: WarpCoF

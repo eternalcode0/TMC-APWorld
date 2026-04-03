@@ -2,7 +2,16 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from BaseClasses import ItemClassification
-from .options import DHCAccess, DungeonItem, Goal, ShuffleElements, DungeonWarp, PedReward, DungeonCompasses, DungeonMaps
+from .options import (
+    DHCAccess,
+    DungeonItem,
+    Goal,
+    ShuffleElements,
+    DungeonWarp,
+    PedReward,
+    DungeonCompasses,
+    DungeonMaps,
+)
 from .constants import TMCItem, TMCLocation, MinishCapItem
 
 if TYPE_CHECKING:
@@ -64,33 +73,26 @@ def pool_baseitems() -> list[str]:
         TMCItem.REMOTE_BOMB,
         *[TMCItem.QUIVER] * 3,
         TMCItem.BOW_BUTTERFLY,
-
         TMCItem.GUST_JAR,
         TMCItem.LANTERN,
         TMCItem.CANE_OF_PACCI,
         TMCItem.ROCS_CAPE,
         TMCItem.PEGASUS_BOOTS,
         TMCItem.OCARINA,
-
         TMCItem.FLIPPERS,
         TMCItem.SWIM_BUTTERFLY,
-
         TMCItem.MOLE_MITTS,
         TMCItem.DIG_BUTTERFLY,
-
         TMCItem.DOG_FOOD,
-
         TMCItem.BIG_WALLET,
         TMCItem.BIG_WALLET,
         TMCItem.BIG_WALLET,
-
         TMCItem.ROLL_ATTACK,
         TMCItem.DASH_ATTACK,
         TMCItem.ROCK_BREAKER,
         TMCItem.SWORD_BEAM,
         TMCItem.DOWNTHRUST,
         TMCItem.PERIL_BEAM,
-
         TMCItem.TINGLE_TROPHY,
         TMCItem.CARLOV_MEDAL,
         TMCItem.JABBER_NUT,
@@ -102,19 +104,33 @@ def pool_baseitems() -> list[str]:
         TMCItem.RED_BOOK,
         TMCItem.GREEN_BOOK,
         TMCItem.BLUE_BOOK,
-
         *(pool_kinstone_gold()),
     ]
 
 
 def pool_traps() -> list[str]:
-    return [TMCItem.TRAP_ICE, TMCItem.TRAP_FIRE, TMCItem.TRAP_ZAP, TMCItem.TRAP_BOMB, TMCItem.TRAP_MONEY,
-            TMCItem.TRAP_STINK, TMCItem.TRAP_ROPE, TMCItem.TRAP_BAT, TMCItem.TRAP_LIKE, TMCItem.TRAP_CURSE]
+    return [
+        TMCItem.TRAP_ICE,
+        TMCItem.TRAP_FIRE,
+        TMCItem.TRAP_ZAP,
+        TMCItem.TRAP_BOMB,
+        TMCItem.TRAP_MONEY,
+        TMCItem.TRAP_STINK,
+        TMCItem.TRAP_ROPE,
+        TMCItem.TRAP_BAT,
+        TMCItem.TRAP_LIKE,
+        TMCItem.TRAP_CURSE,
+    ]
 
 
 def pool_dungeonmaps(world: "MinishCapWorld") -> list[str]:
-    maps = [TMCItem.DUNGEON_MAP_DWS, TMCItem.DUNGEON_MAP_COF, TMCItem.DUNGEON_MAP_FOW, TMCItem.DUNGEON_MAP_TOD,
-            TMCItem.DUNGEON_MAP_POW]
+    maps = [
+        TMCItem.DUNGEON_MAP_DWS,
+        TMCItem.DUNGEON_MAP_COF,
+        TMCItem.DUNGEON_MAP_FOW,
+        TMCItem.DUNGEON_MAP_TOD,
+        TMCItem.DUNGEON_MAP_POW,
+    ]
     if world.options.dhc_access.value != DHCAccess.option_closed:
         maps.append(TMCItem.DUNGEON_MAP_DHC)
     if world.options.dungeon_maps.value == DungeonMaps.option_start_with:
@@ -125,8 +141,13 @@ def pool_dungeonmaps(world: "MinishCapWorld") -> list[str]:
 
 
 def pool_compass(world: "MinishCapWorld") -> list[str]:
-    compasses = [TMCItem.DUNGEON_COMPASS_DWS, TMCItem.DUNGEON_COMPASS_COF, TMCItem.DUNGEON_COMPASS_FOW,
-                 TMCItem.DUNGEON_COMPASS_TOD, TMCItem.DUNGEON_COMPASS_POW]
+    compasses = [
+        TMCItem.DUNGEON_COMPASS_DWS,
+        TMCItem.DUNGEON_COMPASS_COF,
+        TMCItem.DUNGEON_COMPASS_FOW,
+        TMCItem.DUNGEON_COMPASS_TOD,
+        TMCItem.DUNGEON_COMPASS_POW,
+    ]
     if world.options.dhc_access.value != DHCAccess.option_closed:
         compasses.append(TMCItem.DUNGEON_COMPASS_DHC)
     if world.options.dungeon_compasses.value == DungeonCompasses.option_start_with:
@@ -138,8 +159,11 @@ def pool_compass(world: "MinishCapWorld") -> list[str]:
 
 def pool_bigkeys(world: "MinishCapWorld") -> list[str]:
     keys = [TMCItem.BIG_KEY_DWS, TMCItem.BIG_KEY_COF, TMCItem.BIG_KEY_FOW, TMCItem.BIG_KEY_POW]
-    if world.options.dhc_access != DHCAccess.option_closed and world.options.goal == Goal.option_vaati and \
-        world.options.ped_reward.value != PedReward.option_dhc_big_key:
+    if (
+        world.options.dhc_access != DHCAccess.option_closed
+        and world.options.goal == Goal.option_vaati
+        and world.options.ped_reward.value != PedReward.option_dhc_big_key
+    ):
         keys.append(TMCItem.BIG_KEY_DHC)
     return keys
 
@@ -147,7 +171,13 @@ def pool_bigkeys(world: "MinishCapWorld") -> list[str]:
 def pool_swords(world: "MinishCapWorld") -> list[str]:
     if world.options.progressive_sword.value:
         return [TMCItem.PROGRESSIVE_SWORD] * 5
-    return [TMCItem.SMITHS_SWORD, TMCItem.WHITE_SWORD_GREEN, TMCItem.WHITE_SWORD_RED, TMCItem.WHITE_SWORD_BLUE, TMCItem.FOUR_SWORD]
+    return [
+        TMCItem.SMITHS_SWORD,
+        TMCItem.WHITE_SWORD_GREEN,
+        TMCItem.WHITE_SWORD_RED,
+        TMCItem.WHITE_SWORD_BLUE,
+        TMCItem.FOUR_SWORD,
+    ]
 
 
 def pool_bow(world: "MinishCapWorld") -> list[str]:
@@ -171,12 +201,19 @@ def pool_shield(world: "MinishCapWorld") -> list[str]:
 def pool_scroll(world: "MinishCapWorld") -> list[str]:
     if world.options.progressive_scroll.value:
         return [TMCItem.PROGRESSIVE_SCROLL] * 5
-    return [TMCItem.SPIN_ATTACK, TMCItem.GREATSPIN, TMCItem.FAST_SPIN_SCROLL, TMCItem.FAST_SPLIT_SCROLL, TMCItem.LONG_SPIN]
+    return [
+        TMCItem.SPIN_ATTACK,
+        TMCItem.GREATSPIN,
+        TMCItem.FAST_SPIN_SCROLL,
+        TMCItem.FAST_SPLIT_SCROLL,
+        TMCItem.LONG_SPIN,
+    ]
 
 
 def pool_health(world: "MinishCapWorld") -> list[str]:
-    return ([TMCItem.HEART_CONTAINER] * world.options.heart_containers.value +
-            [TMCItem.HEART_PIECE] * (world.options.piece_of_hearts.value * 4))
+    return [TMCItem.HEART_CONTAINER] * world.options.heart_containers.value + [TMCItem.HEART_PIECE] * (
+        world.options.piece_of_hearts.value * 4
+    )
 
 
 def pool_smallkeys(world: "MinishCapWorld") -> list[str]:
@@ -206,7 +243,11 @@ def pool_kinstone_blue() -> list[str]:
 
 
 def pool_kinstone_green() -> list[str]:
-    return [*[TMCItem.KINSTONE_GREEN_ANGLE] * 17, *[TMCItem.KINSTONE_GREEN_SQUARE] * 16, *[TMCItem.KINSTONE_GREEN_P] * 16]
+    return [
+        *[TMCItem.KINSTONE_GREEN_ANGLE] * 17,
+        *[TMCItem.KINSTONE_GREEN_SQUARE] * 16,
+        *[TMCItem.KINSTONE_GREEN_P] * 16,
+    ]
 
 
 def get_item_pool(world: "MinishCapWorld") -> list[MinishCapItem]:
@@ -244,14 +285,19 @@ def get_item_pool(world: "MinishCapWorld") -> list[MinishCapItem]:
         item_pool.extend([TMCItem.FIGURINE] * world.options.figurine_amount.value)
 
     if world.options.ped_reward == PedReward.option_dhc_big_key:
-        world.get_location(TMCLocation.PEDESTAL_REQUIREMENT_REWARD).place_locked_item(world.create_item(TMCItem.BIG_KEY_DHC))
+        world.get_location(TMCLocation.PEDESTAL_REQUIREMENT_REWARD).place_locked_item(
+            world.create_item(TMCItem.BIG_KEY_DHC)
+        )
 
     # ToD is stupid, need to place the big key manually
-    if world.options.dungeon_big_keys.value == DungeonItem.option_own_dungeon and \
-       TMCItem.BIG_KEY_TOD not in world.options.start_inventory_from_pool.value.keys() and \
-        world.options.dungeon_warp_tod.value == DungeonWarp.option_none:
-        location = world.random.choice([TMCLocation.DROPLETS_ENTRANCE_B2_EAST_ICEBLOCK,
-                                        TMCLocation.DROPLETS_ENTRANCE_B2_WEST_ICEBLOCK])
+    if (
+        world.options.dungeon_big_keys.value == DungeonItem.option_own_dungeon
+        and TMCItem.BIG_KEY_TOD not in world.options.start_inventory_from_pool.value.keys()
+        and world.options.dungeon_warp_tod.value == DungeonWarp.option_none
+    ):
+        location = world.random.choice(
+            [TMCLocation.DROPLETS_ENTRANCE_B2_EAST_ICEBLOCK, TMCLocation.DROPLETS_ENTRANCE_B2_WEST_ICEBLOCK]
+        )
         world.get_location(location).place_locked_item(world.create_item(TMCItem.BIG_KEY_TOD))
 
     if not world.options.random_bottle_contents.value:
@@ -425,7 +471,6 @@ item_table: dict[str, ItemData] = {
     TMCItem.FAST_SPIN_SCROLL: ItemData(ItemClassification.progression, (0x73, 0x00)),
     TMCItem.FAST_SPLIT_SCROLL: ItemData(ItemClassification.progression, (0x74, 0x00)),
     TMCItem.LONG_SPIN: ItemData(ItemClassification.progression, (0x75, 0x00)),
-
     TMCItem.TRAP_ICE: ItemData(ItemClassification.trap, (0x1B, 0x0)),
     TMCItem.TRAP_FIRE: ItemData(ItemClassification.trap, (0x1B, 0x1)),
     TMCItem.TRAP_ZAP: ItemData(ItemClassification.trap, (0x1B, 0x2)),
@@ -436,7 +481,6 @@ item_table: dict[str, ItemData] = {
     TMCItem.TRAP_BAT: ItemData(ItemClassification.trap, (0x1B, 0x7)),
     TMCItem.TRAP_LIKE: ItemData(ItemClassification.trap, (0x1B, 0x8)),
     TMCItem.TRAP_CURSE: ItemData(ItemClassification.trap, (0x1B, 0x9)),
-
     TMCItem.DUNGEON_MAP_DWS: ItemData(ItemClassification.useful, (0x50, 0x18)),
     TMCItem.DUNGEON_MAP_COF: ItemData(ItemClassification.useful, (0x50, 0x19)),
     TMCItem.DUNGEON_MAP_FOW: ItemData(ItemClassification.useful, (0x50, 0x1A)),
@@ -465,15 +509,18 @@ item_table: dict[str, ItemData] = {
 }
 
 item_frequencies: dict[str, int] = {
-    TMCItem.RUPEES_1: 36, TMCItem.RUPEES_5: 49, TMCItem.RUPEES_20: 53,
-    TMCItem.RUPEES_50: 25, TMCItem.RUPEES_100: 18, TMCItem.RUPEES_200: 15,
-
+    TMCItem.RUPEES_1: 36,
+    TMCItem.RUPEES_5: 49,
+    TMCItem.RUPEES_20: 53,
+    TMCItem.RUPEES_50: 25,
+    TMCItem.RUPEES_100: 18,
+    TMCItem.RUPEES_200: 15,
     TMCItem.HEART_REFILL: 29,
-
-    TMCItem.BOMB_REFILL_5: 34, TMCItem.BOMB_REFILL_10: 22,
+    TMCItem.BOMB_REFILL_5: 34,
+    TMCItem.BOMB_REFILL_10: 22,
     TMCItem.BOMB_REFILL_30: 16,
-
-    TMCItem.ARROW_REFILL_5: 34, TMCItem.ARROW_REFILL_10: 22,
+    TMCItem.ARROW_REFILL_5: 34,
+    TMCItem.ARROW_REFILL_10: 22,
     TMCItem.ARROW_REFILL_30: 16,
 }
 
@@ -500,20 +547,58 @@ def get_filler_item_selection(world: "MinishCapWorld"):
 
 
 item_groups: dict[str, set[str]] = {
-    "Spin Scrolls": {TMCItem.PROGRESSIVE_SCROLL, TMCItem.SPIN_ATTACK, TMCItem.GREATSPIN, TMCItem.FAST_SPIN_SCROLL,
-                     TMCItem.FAST_SPLIT_SCROLL, TMCItem.LONG_SPIN},
-    "Scrolls": {TMCItem.PROGRESSIVE_SCROLL, TMCItem.SPIN_ATTACK, TMCItem.ROLL_ATTACK, TMCItem.DASH_ATTACK,
-                TMCItem.ROCK_BREAKER, TMCItem.SWORD_BEAM, TMCItem.GREATSPIN, TMCItem.DOWNTHRUST, TMCItem.PERIL_BEAM,
-                TMCItem.FAST_SPIN_SCROLL, TMCItem.FAST_SPLIT_SCROLL, TMCItem.LONG_SPIN},
+    "Spin Scrolls": {
+        TMCItem.PROGRESSIVE_SCROLL,
+        TMCItem.SPIN_ATTACK,
+        TMCItem.GREATSPIN,
+        TMCItem.FAST_SPIN_SCROLL,
+        TMCItem.FAST_SPLIT_SCROLL,
+        TMCItem.LONG_SPIN,
+    },
+    "Scrolls": {
+        TMCItem.PROGRESSIVE_SCROLL,
+        TMCItem.SPIN_ATTACK,
+        TMCItem.ROLL_ATTACK,
+        TMCItem.DASH_ATTACK,
+        TMCItem.ROCK_BREAKER,
+        TMCItem.SWORD_BEAM,
+        TMCItem.GREATSPIN,
+        TMCItem.DOWNTHRUST,
+        TMCItem.PERIL_BEAM,
+        TMCItem.FAST_SPIN_SCROLL,
+        TMCItem.FAST_SPLIT_SCROLL,
+        TMCItem.LONG_SPIN,
+    },
     "Elements": {TMCItem.EARTH_ELEMENT, TMCItem.FIRE_ELEMENT, TMCItem.WATER_ELEMENT, TMCItem.WIND_ELEMENT},
     "Health": {TMCItem.HEART_CONTAINER, TMCItem.HEART_PIECE},
-    "Bottle": {TMCItem.EMPTY_BOTTLE, TMCItem.LON_LON_BUTTER, TMCItem.LON_LON_MILK, TMCItem.LON_LON_MILK_HALF,
-               TMCItem.RED_POTION, TMCItem.BLUE_POTION, TMCItem.WATER, TMCItem.MINERAL_WATER, TMCItem.BOTTLED_FAIRY,
-               TMCItem.RED_PICOLYTE, TMCItem.ORANGE_PICOLYTE, TMCItem.YELLOW_PICOLYTE, TMCItem.GREEN_PICOLYTE,
-               TMCItem.BLUE_PICOLYTE, TMCItem.WHITE_PICOLYTE, TMCItem.NAYRU_CHARM, TMCItem.FARORE_CHARM,
-               TMCItem.DINS_CHARM},
-    "Swords": {TMCItem.PROGRESSIVE_SWORD, TMCItem.SMITHS_SWORD, TMCItem.WHITE_SWORD_GREEN, TMCItem.WHITE_SWORD_RED,
-              TMCItem.WHITE_SWORD_BLUE, TMCItem.FOUR_SWORD},
+    "Bottle": {
+        TMCItem.EMPTY_BOTTLE,
+        TMCItem.LON_LON_BUTTER,
+        TMCItem.LON_LON_MILK,
+        TMCItem.LON_LON_MILK_HALF,
+        TMCItem.RED_POTION,
+        TMCItem.BLUE_POTION,
+        TMCItem.WATER,
+        TMCItem.MINERAL_WATER,
+        TMCItem.BOTTLED_FAIRY,
+        TMCItem.RED_PICOLYTE,
+        TMCItem.ORANGE_PICOLYTE,
+        TMCItem.YELLOW_PICOLYTE,
+        TMCItem.GREEN_PICOLYTE,
+        TMCItem.BLUE_PICOLYTE,
+        TMCItem.WHITE_PICOLYTE,
+        TMCItem.NAYRU_CHARM,
+        TMCItem.FARORE_CHARM,
+        TMCItem.DINS_CHARM,
+    },
+    "Swords": {
+        TMCItem.PROGRESSIVE_SWORD,
+        TMCItem.SMITHS_SWORD,
+        TMCItem.WHITE_SWORD_GREEN,
+        TMCItem.WHITE_SWORD_RED,
+        TMCItem.WHITE_SWORD_BLUE,
+        TMCItem.FOUR_SWORD,
+    },
     "Bows": {TMCItem.PROGRESSIVE_BOW, TMCItem.BOW, TMCItem.LIGHT_ARROW},
     "Boomerangs": {TMCItem.PROGRESSIVE_BOOMERANG, TMCItem.BOOMERANG, TMCItem.MAGIC_BOOMERANG},
     "Shields": {TMCItem.PROGRESSIVE_SHIELD, TMCItem.SHIELD, TMCItem.MIRROR_SHIELD},
@@ -527,75 +612,200 @@ item_groups: dict[str, set[str]] = {
     "Heart Piece": {TMCItem.HEART_PIECE},
     "Active Equipment": {
         # Swords
-        TMCItem.PROGRESSIVE_SWORD, TMCItem.SMITHS_SWORD, TMCItem.WHITE_SWORD_GREEN, TMCItem.WHITE_SWORD_RED,
-        TMCItem.WHITE_SWORD_BLUE, TMCItem.FOUR_SWORD,
+        TMCItem.PROGRESSIVE_SWORD,
+        TMCItem.SMITHS_SWORD,
+        TMCItem.WHITE_SWORD_GREEN,
+        TMCItem.WHITE_SWORD_RED,
+        TMCItem.WHITE_SWORD_BLUE,
+        TMCItem.FOUR_SWORD,
         # Bows
-        TMCItem.PROGRESSIVE_BOW, TMCItem.BOW, TMCItem.LIGHT_ARROW,
+        TMCItem.PROGRESSIVE_BOW,
+        TMCItem.BOW,
+        TMCItem.LIGHT_ARROW,
         # Boomerangs
-        TMCItem.PROGRESSIVE_BOOMERANG, TMCItem.BOOMERANG, TMCItem.MAGIC_BOOMERANG,
+        TMCItem.PROGRESSIVE_BOOMERANG,
+        TMCItem.BOOMERANG,
+        TMCItem.MAGIC_BOOMERANG,
         # Shields
-        TMCItem.PROGRESSIVE_SHIELD, TMCItem.SHIELD, TMCItem.MIRROR_SHIELD,
+        TMCItem.PROGRESSIVE_SHIELD,
+        TMCItem.SHIELD,
+        TMCItem.MIRROR_SHIELD,
         # Misc
-        TMCItem.GUST_JAR, TMCItem.CANE_OF_PACCI, TMCItem.MOLE_MITTS, TMCItem.LANTERN, TMCItem.BOMB_BAG,
-        TMCItem.REMOTE_BOMB, TMCItem.PEGASUS_BOOTS, TMCItem.ROCS_CAPE, TMCItem.OCARINA,
+        TMCItem.GUST_JAR,
+        TMCItem.CANE_OF_PACCI,
+        TMCItem.MOLE_MITTS,
+        TMCItem.LANTERN,
+        TMCItem.BOMB_BAG,
+        TMCItem.REMOTE_BOMB,
+        TMCItem.PEGASUS_BOOTS,
+        TMCItem.ROCS_CAPE,
+        TMCItem.OCARINA,
     },
-    "Passive Equipment": {TMCItem.QUIVER, TMCItem.GRIP_RING, TMCItem.POWER_BRACELETS, TMCItem.FLIPPERS,
-                          TMCItem.BOW_BUTTERFLY, TMCItem.DIG_BUTTERFLY, TMCItem.SWIM_BUTTERFLY},
+    "Passive Equipment": {
+        TMCItem.QUIVER,
+        TMCItem.GRIP_RING,
+        TMCItem.POWER_BRACELETS,
+        TMCItem.FLIPPERS,
+        TMCItem.BOW_BUTTERFLY,
+        TMCItem.DIG_BUTTERFLY,
+        TMCItem.SWIM_BUTTERFLY,
+    },
     "Equipment": {
         # Swords
-        TMCItem.PROGRESSIVE_SWORD, TMCItem.SMITHS_SWORD, TMCItem.WHITE_SWORD_GREEN, TMCItem.WHITE_SWORD_RED,
-        TMCItem.WHITE_SWORD_BLUE, TMCItem.FOUR_SWORD,
+        TMCItem.PROGRESSIVE_SWORD,
+        TMCItem.SMITHS_SWORD,
+        TMCItem.WHITE_SWORD_GREEN,
+        TMCItem.WHITE_SWORD_RED,
+        TMCItem.WHITE_SWORD_BLUE,
+        TMCItem.FOUR_SWORD,
         # Bows
-        TMCItem.PROGRESSIVE_BOW, TMCItem.BOW, TMCItem.LIGHT_ARROW,
+        TMCItem.PROGRESSIVE_BOW,
+        TMCItem.BOW,
+        TMCItem.LIGHT_ARROW,
         # Boomerangs
-        TMCItem.PROGRESSIVE_BOOMERANG, TMCItem.BOOMERANG, TMCItem.MAGIC_BOOMERANG,
+        TMCItem.PROGRESSIVE_BOOMERANG,
+        TMCItem.BOOMERANG,
+        TMCItem.MAGIC_BOOMERANG,
         # Shields
-        TMCItem.PROGRESSIVE_SHIELD, TMCItem.SHIELD, TMCItem.MIRROR_SHIELD,
+        TMCItem.PROGRESSIVE_SHIELD,
+        TMCItem.SHIELD,
+        TMCItem.MIRROR_SHIELD,
         # Misc
-        TMCItem.GUST_JAR, TMCItem.CANE_OF_PACCI, TMCItem.MOLE_MITTS, TMCItem.LANTERN, TMCItem.BOMB_BAG,
-        TMCItem.REMOTE_BOMB, TMCItem.PEGASUS_BOOTS, TMCItem.ROCS_CAPE, TMCItem.OCARINA,
+        TMCItem.GUST_JAR,
+        TMCItem.CANE_OF_PACCI,
+        TMCItem.MOLE_MITTS,
+        TMCItem.LANTERN,
+        TMCItem.BOMB_BAG,
+        TMCItem.REMOTE_BOMB,
+        TMCItem.PEGASUS_BOOTS,
+        TMCItem.ROCS_CAPE,
+        TMCItem.OCARINA,
         # Passive
-        TMCItem.QUIVER, TMCItem.GRIP_RING, TMCItem.POWER_BRACELETS, TMCItem.FLIPPERS, TMCItem.BOW_BUTTERFLY,
-        TMCItem.DIG_BUTTERFLY, TMCItem.SWIM_BUTTERFLY
+        TMCItem.QUIVER,
+        TMCItem.GRIP_RING,
+        TMCItem.POWER_BRACELETS,
+        TMCItem.FLIPPERS,
+        TMCItem.BOW_BUTTERFLY,
+        TMCItem.DIG_BUTTERFLY,
+        TMCItem.SWIM_BUTTERFLY,
     },
     "Butterflies": {TMCItem.BOW_BUTTERFLY, TMCItem.DIG_BUTTERFLY, TMCItem.SWIM_BUTTERFLY},
     "Books": {TMCItem.RED_BOOK, TMCItem.BLUE_BOOK, TMCItem.GREEN_BOOK},
     "Red Book": {TMCItem.RED_BOOK},
     "Blue Book": {TMCItem.BLUE_BOOK},
     "Green Book": {TMCItem.GREEN_BOOK},
-    "Quest": {TMCItem.JABBER_NUT, TMCItem.LONLON_KEY, TMCItem.GRAVEYARD_KEY, TMCItem.WAKEUP_MUSHROOM,
-              TMCItem.DOG_FOOD, TMCItem.CARLOV_MEDAL, TMCItem.TINGLE_TROPHY, TMCItem.RED_BOOK, TMCItem.BLUE_BOOK,
-              TMCItem.GREEN_BOOK},
-    "Rupees": {TMCItem.RUPEES_1, TMCItem.RUPEES_5, TMCItem.RUPEES_20, TMCItem.RUPEES_50, TMCItem.RUPEES_100,
-               TMCItem.RUPEES_200},
-    "Kinstones": {TMCItem.KINSTONE_GOLD_CLOUD, TMCItem.KINSTONE_GOLD_SWAMP, TMCItem.KINSTONE_GOLD_FALLS,
-                  TMCItem.KINSTONE_RED_W, TMCItem.KINSTONE_RED_ANGLE, TMCItem.KINSTONE_RED_E,
-                  TMCItem.KINSTONE_BLUE_L, TMCItem.KINSTONE_BLUE_6,
-                  TMCItem.KINSTONE_GREEN_ANGLE, TMCItem.KINSTONE_GREEN_SQUARE, TMCItem.KINSTONE_GREEN_P},
+    "Quest": {
+        TMCItem.JABBER_NUT,
+        TMCItem.LONLON_KEY,
+        TMCItem.GRAVEYARD_KEY,
+        TMCItem.WAKEUP_MUSHROOM,
+        TMCItem.DOG_FOOD,
+        TMCItem.CARLOV_MEDAL,
+        TMCItem.TINGLE_TROPHY,
+        TMCItem.RED_BOOK,
+        TMCItem.BLUE_BOOK,
+        TMCItem.GREEN_BOOK,
+    },
+    "Rupees": {
+        TMCItem.RUPEES_1,
+        TMCItem.RUPEES_5,
+        TMCItem.RUPEES_20,
+        TMCItem.RUPEES_50,
+        TMCItem.RUPEES_100,
+        TMCItem.RUPEES_200,
+    },
+    "Kinstones": {
+        TMCItem.KINSTONE_GOLD_CLOUD,
+        TMCItem.KINSTONE_GOLD_SWAMP,
+        TMCItem.KINSTONE_GOLD_FALLS,
+        TMCItem.KINSTONE_RED_W,
+        TMCItem.KINSTONE_RED_ANGLE,
+        TMCItem.KINSTONE_RED_E,
+        TMCItem.KINSTONE_BLUE_L,
+        TMCItem.KINSTONE_BLUE_6,
+        TMCItem.KINSTONE_GREEN_ANGLE,
+        TMCItem.KINSTONE_GREEN_SQUARE,
+        TMCItem.KINSTONE_GREEN_P,
+    },
     "Gold Kinstones": {TMCItem.KINSTONE_GOLD_CLOUD, TMCItem.KINSTONE_GOLD_SWAMP, TMCItem.KINSTONE_GOLD_FALLS},
     "Red Kinstones": {TMCItem.KINSTONE_RED_W, TMCItem.KINSTONE_RED_ANGLE, TMCItem.KINSTONE_RED_E},
     "Blue Kinstones": {TMCItem.KINSTONE_BLUE_L, TMCItem.KINSTONE_BLUE_6},
     "Green Kinstones": {TMCItem.KINSTONE_GREEN_ANGLE, TMCItem.KINSTONE_GREEN_SQUARE, TMCItem.KINSTONE_GREEN_P},
-    "Dungeon Items": {TMCItem.SMALL_KEY_DWS, TMCItem.SMALL_KEY_COF, TMCItem.SMALL_KEY_FOW, TMCItem.SMALL_KEY_TOD,
-                      TMCItem.SMALL_KEY_POW, TMCItem.SMALL_KEY_DHC, TMCItem.SMALL_KEY_RC,
-                      TMCItem.BIG_KEY_DWS, TMCItem.BIG_KEY_COF, TMCItem.BIG_KEY_FOW, TMCItem.BIG_KEY_TOD,
-                      TMCItem.BIG_KEY_POW, TMCItem.BIG_KEY_DHC,
-                      TMCItem.DUNGEON_MAP_DWS, TMCItem.DUNGEON_MAP_COF, TMCItem.DUNGEON_MAP_FOW,
-                      TMCItem.DUNGEON_MAP_TOD, TMCItem.DUNGEON_MAP_POW, TMCItem.DUNGEON_MAP_DHC,
-                      TMCItem.DUNGEON_COMPASS_DWS, TMCItem.DUNGEON_COMPASS_COF, TMCItem.DUNGEON_COMPASS_FOW,
-                      TMCItem.DUNGEON_COMPASS_TOD, TMCItem.DUNGEON_COMPASS_POW, TMCItem.DUNGEON_COMPASS_DHC},
-    "Small Keys": {TMCItem.SMALL_KEY_DWS, TMCItem.SMALL_KEY_COF, TMCItem.SMALL_KEY_FOW, TMCItem.SMALL_KEY_TOD,
-                   TMCItem.SMALL_KEY_POW, TMCItem.SMALL_KEY_DHC, TMCItem.SMALL_KEY_RC},
-    "Big Keys": {TMCItem.BIG_KEY_DWS, TMCItem.BIG_KEY_COF, TMCItem.BIG_KEY_FOW, TMCItem.BIG_KEY_TOD,
-                 TMCItem.BIG_KEY_POW, TMCItem.BIG_KEY_DHC},
-    "Keys": {TMCItem.SMALL_KEY_DWS, TMCItem.SMALL_KEY_COF, TMCItem.SMALL_KEY_FOW, TMCItem.SMALL_KEY_TOD,
-             TMCItem.SMALL_KEY_POW, TMCItem.SMALL_KEY_DHC, TMCItem.SMALL_KEY_RC,
-             TMCItem.BIG_KEY_DWS, TMCItem.BIG_KEY_COF, TMCItem.BIG_KEY_FOW, TMCItem.BIG_KEY_TOD,
-             TMCItem.BIG_KEY_POW, TMCItem.BIG_KEY_DHC},
-    "Maps": {TMCItem.DUNGEON_MAP_DWS, TMCItem.DUNGEON_MAP_COF, TMCItem.DUNGEON_MAP_FOW, TMCItem.DUNGEON_MAP_TOD,
-             TMCItem.DUNGEON_MAP_POW, TMCItem.DUNGEON_MAP_DHC},
-    "Compasses": {TMCItem.DUNGEON_COMPASS_DWS, TMCItem.DUNGEON_COMPASS_COF, TMCItem.DUNGEON_COMPASS_FOW,
-                  TMCItem.DUNGEON_COMPASS_TOD, TMCItem.DUNGEON_COMPASS_POW, TMCItem.DUNGEON_COMPASS_DHC},
+    "Dungeon Items": {
+        TMCItem.SMALL_KEY_DWS,
+        TMCItem.SMALL_KEY_COF,
+        TMCItem.SMALL_KEY_FOW,
+        TMCItem.SMALL_KEY_TOD,
+        TMCItem.SMALL_KEY_POW,
+        TMCItem.SMALL_KEY_DHC,
+        TMCItem.SMALL_KEY_RC,
+        TMCItem.BIG_KEY_DWS,
+        TMCItem.BIG_KEY_COF,
+        TMCItem.BIG_KEY_FOW,
+        TMCItem.BIG_KEY_TOD,
+        TMCItem.BIG_KEY_POW,
+        TMCItem.BIG_KEY_DHC,
+        TMCItem.DUNGEON_MAP_DWS,
+        TMCItem.DUNGEON_MAP_COF,
+        TMCItem.DUNGEON_MAP_FOW,
+        TMCItem.DUNGEON_MAP_TOD,
+        TMCItem.DUNGEON_MAP_POW,
+        TMCItem.DUNGEON_MAP_DHC,
+        TMCItem.DUNGEON_COMPASS_DWS,
+        TMCItem.DUNGEON_COMPASS_COF,
+        TMCItem.DUNGEON_COMPASS_FOW,
+        TMCItem.DUNGEON_COMPASS_TOD,
+        TMCItem.DUNGEON_COMPASS_POW,
+        TMCItem.DUNGEON_COMPASS_DHC,
+    },
+    "Small Keys": {
+        TMCItem.SMALL_KEY_DWS,
+        TMCItem.SMALL_KEY_COF,
+        TMCItem.SMALL_KEY_FOW,
+        TMCItem.SMALL_KEY_TOD,
+        TMCItem.SMALL_KEY_POW,
+        TMCItem.SMALL_KEY_DHC,
+        TMCItem.SMALL_KEY_RC,
+    },
+    "Big Keys": {
+        TMCItem.BIG_KEY_DWS,
+        TMCItem.BIG_KEY_COF,
+        TMCItem.BIG_KEY_FOW,
+        TMCItem.BIG_KEY_TOD,
+        TMCItem.BIG_KEY_POW,
+        TMCItem.BIG_KEY_DHC,
+    },
+    "Keys": {
+        TMCItem.SMALL_KEY_DWS,
+        TMCItem.SMALL_KEY_COF,
+        TMCItem.SMALL_KEY_FOW,
+        TMCItem.SMALL_KEY_TOD,
+        TMCItem.SMALL_KEY_POW,
+        TMCItem.SMALL_KEY_DHC,
+        TMCItem.SMALL_KEY_RC,
+        TMCItem.BIG_KEY_DWS,
+        TMCItem.BIG_KEY_COF,
+        TMCItem.BIG_KEY_FOW,
+        TMCItem.BIG_KEY_TOD,
+        TMCItem.BIG_KEY_POW,
+        TMCItem.BIG_KEY_DHC,
+    },
+    "Maps": {
+        TMCItem.DUNGEON_MAP_DWS,
+        TMCItem.DUNGEON_MAP_COF,
+        TMCItem.DUNGEON_MAP_FOW,
+        TMCItem.DUNGEON_MAP_TOD,
+        TMCItem.DUNGEON_MAP_POW,
+        TMCItem.DUNGEON_MAP_DHC,
+    },
+    "Compasses": {
+        TMCItem.DUNGEON_COMPASS_DWS,
+        TMCItem.DUNGEON_COMPASS_COF,
+        TMCItem.DUNGEON_COMPASS_FOW,
+        TMCItem.DUNGEON_COMPASS_TOD,
+        TMCItem.DUNGEON_COMPASS_POW,
+        TMCItem.DUNGEON_COMPASS_DHC,
+    },
     "DWS Items": {TMCItem.DUNGEON_MAP_DWS, TMCItem.DUNGEON_COMPASS_DWS, TMCItem.BIG_KEY_DWS, TMCItem.SMALL_KEY_DWS},
     "DWS Keys": {TMCItem.BIG_KEY_DWS, TMCItem.SMALL_KEY_DWS},
     "CoF Items": {TMCItem.DUNGEON_MAP_COF, TMCItem.DUNGEON_COMPASS_COF, TMCItem.BIG_KEY_COF, TMCItem.SMALL_KEY_COF},

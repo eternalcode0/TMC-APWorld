@@ -3,6 +3,8 @@ Initialization module for The Legend of Zelda - The Minish Cap.
 Handles the Web page for yaml generation, saving rom file and high-level generation.
 """
 
+from enum import StrEnum
+
 import logging
 import os
 import pkgutil
@@ -14,8 +16,9 @@ from Fill import FillError
 from Options import OptionError
 from worlds.AutoWorld import WebWorld, World
 
+from . import rules
 from .client import MinishCapClient  # noqa: F401
-from .constants import MinishCapEvent, MinishCapItem, MinishCapLocation, TMCEvent, TMCItem, TMCLocation, TMCRegion
+from .constants import GAME, MinishCapEvent, MinishCapItem, MinishCapLocation, TMCEvent, TMCItem, TMCLocation, TMCRegion
 from .dungeons import fill_dungeons
 from .items import get_filler_item_selection, get_item_pool, get_pre_fill_pool, item_groups, item_table
 from .locations import (
@@ -46,9 +49,8 @@ from .options import (
 )
 from .regions import create_regions
 from .rom import MinishCapProcedurePatch, write_tokens
-from .rules import MinishCapRules
 
-tmc_logger = logging.getLogger("The Minish Cap")
+tmc_logger = logging.getLogger(GAME)
 
 
 class MinishCapWebWorld(WebWorld):
@@ -95,7 +97,7 @@ class MinishCapSettings(settings.Group):
 class MinishCapWorld(World):
     """Randomizer methods/data for generation"""
 
-    game = "The Minish Cap"
+    game = GAME
     web = MinishCapWebWorld()
     options_dataclass = MinishCapOptions
     options: MinishCapOptions
@@ -280,17 +282,21 @@ class MinishCapWorld(World):
     # local_items overrides non_local_items
 
     def set_rules(self) -> None:
-        MinishCapRules(self).set_rules(self.disabled_locations, self.location_name_to_id)
+        rules.set_rules(self)
 
     def connect_entrances(self) -> None:
-        pass
-        # if options.randomize_entrances.value:
-        #     self.rule_builder.randomize_entrances()
+        from Utils import visualize_regions
 
-        # from Utils import visualize_regions
-        # visualize_regions(self.multiworld.get_region("Menu", self.player), f"{self.player_name}_world.puml",
-        #                   regions_to_highlight=self.multiworld.get_all_state(self.player).reachable_regions[
-        #                  self.player])
+        state = self.multiworld.get_all_state(False)
+        state.update_reachable_regions(self.player)
+        visualize_regions(
+            self.get_region(self.origin_region_name),
+            f"tmc_{self.player_name}.puml",
+            show_other_regions=True,
+            linetype_ortho=False,
+            show_entrance_names=True,
+            regions_to_highlight=set(state.reachable_regions[self.player]),
+        )
 
     # All rules finalized
     # location progress type assigned, excluded overrides priority
@@ -376,14 +382,15 @@ class MinishCapWorld(World):
     # output zip
     # endregion
 
-    def create_item(self, name: str) -> MinishCapItem:
+    def create_item(self, name: str | StrEnum) -> MinishCapItem:
         item = item_table[name]
         classification = item.classification
         if name == TMCItem.HEART_CONTAINER and self.options.starting_hearts >= 10:
             classification = ItemClassification.useful
         if name == TMCItem.HEART_PIECE and (self.options.starting_hearts + self.options.heart_containers) >= 10:
             classification = ItemClassification.useful
-        return MinishCapItem(name, classification, self.item_name_to_id[name], self.player)
+        item_name = name.value if isinstance(name, StrEnum) else name
+        return MinishCapItem(item_name, classification, self.item_name_to_id[name], self.player)
 
     def create_event(self, name: str) -> MinishCapEvent:
         return MinishCapEvent(name, ItemClassification.progression, None, self.player)

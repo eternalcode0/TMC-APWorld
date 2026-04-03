@@ -1,25 +1,28 @@
 from collections.abc import Callable
+from enum import StrEnum
 
 from BaseClasses import Item, ItemClassification, Location, Region
 
+GAME = "The Minish Cap"
+
 
 class MinishCapItem(Item):
-    game: str = "The Minish Cap"
+    game: str = GAME
 
 
 class MinishCapLocation(Location):
-    game: str = "The Minish Cap"
+    game: str = GAME
 
 
 class MinishCapEvent(Item):
-    game: str = "The Minish Cap"
+    game: str = GAME
 
 
 class MinishCapRegion(Region):
-    game: str = "The Minish Cap"
+    game: str = GAME
 
 
-class TMCItem:
+class TMCItem(StrEnum):
     INACCESSIBLE = "Inaccessible"
     SMITHS_SWORD = "Smith's Sword"
     WHITE_SWORD_GREEN = "White Sword"
@@ -287,7 +290,7 @@ class TMCItem:
     FUSION_64 = "Wind Ruins Chest in middle of pillars"
 
 
-class TMCLocation:
+class TMCLocation(StrEnum):
     SMITH_HOUSE_CHEST = "South Field Smith House Chest"
     SMITH_HOUSE_SWORD = "South Field Smith House Left Item"
     SMITH_HOUSE_SHIELD = "South Field Smith House Right Item"
@@ -1079,7 +1082,9 @@ class TMCFlagGroup:
     STRANGER_TOWN_FUSIONS_COMPLETED = "Stranger (Town) Fusions Completed"
     GALE_CLOUDS_WIND_TRIBE_1F_FUSIONS_COMPLETED = "Gale (Clouds + Wind Tribe 1F) Fusions Completed"
     CAPRICE_WIND_TRIBE_2F_UPPER_FUSIONS_COMPLETED = "Caprice (Wind Tribe 2F Upper) Fusions Completed"
-    HAILEY_CLOUDS_WIND_TRIBE_UPPER_BLOCKER_FUSIONS_COMPLETED = "Hailey (Clouds + Wind Tribe Upper Blocker) Fusions Completed"
+    HAILEY_CLOUDS_WIND_TRIBE_UPPER_BLOCKER_FUSIONS_COMPLETED = (
+        "Hailey (Clouds + Wind Tribe Upper Blocker) Fusions Completed"
+    )
     SIROC_WIND_TRIBE_OLD_LADY_FUSIONS_COMPLETED = "Siroc (Wind Tribe Old Lady) Fusions Completed"
     FLURRIS_WIND_TRIBE_LOWER_BLOCKER_FUSIONS_COMPLETED = "Flurris (Wind Tribe Lower Blocker) Fusions Completed"
     GREGAL_WIND_TRIBE_OLD_MAN_FUSIONS_COMPLETED = "Gregal (Wind Tribe Old Man) Fusions Completed"
@@ -1199,7 +1204,9 @@ class TMCFlagGroup:
     STRANGER_TOWN_FUSIONS_OFFERED = "Stranger (Town) Fusions Offered"
     GALE_CLOUDS_WIND_TRIBE_1F_FUSIONS_OFFERED = "Gale (Clouds + Wind Tribe 1F) Fusions Offered"
     CAPRICE_WIND_TRIBE_2F_UPPER_FUSIONS_OFFERED = "Caprice (Wind Tribe 2F Upper) Fusions Offered"
-    HAILEY_CLOUDS_WIND_TRIBE_UPPER_BLOCKER_FUSIONS_OFFERED = "Hailey (Clouds + Wind Tribe Upper Blocker) Fusions Offered"
+    HAILEY_CLOUDS_WIND_TRIBE_UPPER_BLOCKER_FUSIONS_OFFERED = (
+        "Hailey (Clouds + Wind Tribe Upper Blocker) Fusions Offered"
+    )
     SIROC_WIND_TRIBE_OLD_LADY_FUSIONS_OFFERED = "Siroc (Wind Tribe Old Lady) Fusions Offered"
     FLURRIS_WIND_TRIBE_LOWER_BLOCKER_FUSIONS_OFFERED = "Flurris (Wind Tribe Lower Blocker) Fusions Offered"
     GREGAL_WIND_TRIBE_OLD_MAN_FUSIONS_OFFERED = "Gregal (Wind Tribe Old Man) Fusions Offered"
@@ -1321,7 +1328,7 @@ class TMCFlagGroup:
     KIOSK_DEMO_TIMER = "Kiosk Demo Timer"
 
 
-class TMCEvent:
+class TMCEvent(StrEnum):
     CRENEL_CREST = "Mt Crenel"
     FALLS_CREST = "Veil Falls"
     CLOUDS_CREST = "Cloud Tops"
@@ -1862,7 +1869,7 @@ class TMCEvent:
     CLEAR_DHC = "Kill Vaati"
 
 
-class TMCRegion:
+class TMCRegion(StrEnum):
     SOUTH_FIELD = "South Field"
     SOUTH_PUDDLE = "South Puddle"
     HYRULE_TOWN = "Hyrule Town"
@@ -2020,25 +2027,68 @@ ALL_TRICKS = [
 
 DUNGEON_ABBR = frozenset({"DWS", "CoF", "FoW", "ToD", "PoW", "DHC", "RC"})
 DUNGEON_REGIONS = {
-    "DWS": {TMCRegion.DUNGEON_DWS_ENTRANCE, TMCRegion.DUNGEON_DWS_BARREL, TMCRegion.DUNGEON_DWS_MULLDOZER,
-            TMCRegion.DUNGEON_DWS_BACK_HALF, TMCRegion.DUNGEON_DWS_BLUE_WARP, TMCRegion.DUNGEON_DWS_RED_WARP,
-            TMCRegion.DUNGEON_DWS_CLEAR},
-    "CoF": {TMCRegion.DUNGEON_COF_ENTRANCE, TMCRegion.DUNGEON_COF_MAIN, TMCRegion.DUNGEON_COF_MINECART,
-            TMCRegion.DUNGEON_COF_BLUE_WARP, TMCRegion.DUNGEON_COF_LAVA_BASEMENT, TMCRegion.DUNGEON_COF_CLEAR},
-    "FoW": {TMCRegion.DUNGEON_FOW_ENTRANCE, TMCRegion.DUNGEON_FOW_EYEGORE,
-            TMCRegion.DUNGEON_FOW_BLUE_WARP, TMCRegion.DUNGEON_FOW_CLEAR},
-    "ToD": {TMCRegion.DUNGEON_TOD_ENTRANCE, TMCRegion.DUNGEON_TOD_MAIN, TMCRegion.DUNGEON_TOD_LEFT_BASEMENT,
-            TMCRegion.DUNGEON_TOD_DARK_MAZE_END, TMCRegion.DUNGEON_TOD_WEST_SWITCH_LEDGE,
-            TMCRegion.DUNGEON_TOD_EAST_SWITCH, TMCRegion.DUNGEON_TOD_WEST_SWITCH, TMCRegion.DUNGEON_TOD_CLEAR},
-    "PoW": {TMCRegion.DUNGEON_POW_ENTRANCE, TMCRegion.DUNGEON_POW_OUT_1F, TMCRegion.DUNGEON_POW_OUT_2F,
-            TMCRegion.DUNGEON_POW_OUT_3F, TMCRegion.DUNGEON_POW_OUT_4F, TMCRegion.DUNGEON_POW_OUT_5F,
-            TMCRegion.DUNGEON_POW_BLUE_WARP, TMCRegion.DUNGEON_POW_IN_1F, TMCRegion.DUNGEON_POW_IN_2F,
-            TMCRegion.DUNGEON_POW_IN_3F, TMCRegion.DUNGEON_POW_IN_3F_SWITCH, TMCRegion.DUNGEON_POW_IN_4F,
-            TMCRegion.DUNGEON_POW_RED_WARP, TMCRegion.DUNGEON_POW_IN_5F, TMCRegion.DUNGEON_POW_IN_4F_END,
-            TMCRegion.DUNGEON_POW_IN_5F_END, TMCRegion.DUNGEON_POW_CLEAR},
-    "DHC": {TMCRegion.DUNGEON_DHC_B1_WEST, TMCRegion.DUNGEON_DHC_B2, TMCRegion.DUNGEON_DHC_ENTRANCE,
-            TMCRegion.DUNGEON_DHC_B1_EAST, TMCRegion.DUNGEON_DHC_1F, TMCRegion.DUNGEON_DHC_OUTSIDE,
-            TMCRegion.DUNGEON_DHC_RED_WARP, TMCRegion.DUNGEON_DHC_BLUE_WARP},
+    "DWS": {
+        TMCRegion.DUNGEON_DWS_ENTRANCE,
+        TMCRegion.DUNGEON_DWS_BARREL,
+        TMCRegion.DUNGEON_DWS_MULLDOZER,
+        TMCRegion.DUNGEON_DWS_BACK_HALF,
+        TMCRegion.DUNGEON_DWS_BLUE_WARP,
+        TMCRegion.DUNGEON_DWS_RED_WARP,
+        TMCRegion.DUNGEON_DWS_CLEAR,
+    },
+    "CoF": {
+        TMCRegion.DUNGEON_COF_ENTRANCE,
+        TMCRegion.DUNGEON_COF_MAIN,
+        TMCRegion.DUNGEON_COF_MINECART,
+        TMCRegion.DUNGEON_COF_BLUE_WARP,
+        TMCRegion.DUNGEON_COF_LAVA_BASEMENT,
+        TMCRegion.DUNGEON_COF_CLEAR,
+    },
+    "FoW": {
+        TMCRegion.DUNGEON_FOW_ENTRANCE,
+        TMCRegion.DUNGEON_FOW_EYEGORE,
+        TMCRegion.DUNGEON_FOW_BLUE_WARP,
+        TMCRegion.DUNGEON_FOW_CLEAR,
+    },
+    "ToD": {
+        TMCRegion.DUNGEON_TOD_ENTRANCE,
+        TMCRegion.DUNGEON_TOD_MAIN,
+        TMCRegion.DUNGEON_TOD_LEFT_BASEMENT,
+        TMCRegion.DUNGEON_TOD_DARK_MAZE_END,
+        TMCRegion.DUNGEON_TOD_WEST_SWITCH_LEDGE,
+        TMCRegion.DUNGEON_TOD_EAST_SWITCH,
+        TMCRegion.DUNGEON_TOD_WEST_SWITCH,
+        TMCRegion.DUNGEON_TOD_CLEAR,
+    },
+    "PoW": {
+        TMCRegion.DUNGEON_POW_ENTRANCE,
+        TMCRegion.DUNGEON_POW_OUT_1F,
+        TMCRegion.DUNGEON_POW_OUT_2F,
+        TMCRegion.DUNGEON_POW_OUT_3F,
+        TMCRegion.DUNGEON_POW_OUT_4F,
+        TMCRegion.DUNGEON_POW_OUT_5F,
+        TMCRegion.DUNGEON_POW_BLUE_WARP,
+        TMCRegion.DUNGEON_POW_IN_1F,
+        TMCRegion.DUNGEON_POW_IN_2F,
+        TMCRegion.DUNGEON_POW_IN_3F,
+        TMCRegion.DUNGEON_POW_IN_3F_SWITCH,
+        TMCRegion.DUNGEON_POW_IN_4F,
+        TMCRegion.DUNGEON_POW_RED_WARP,
+        TMCRegion.DUNGEON_POW_IN_5F,
+        TMCRegion.DUNGEON_POW_IN_4F_END,
+        TMCRegion.DUNGEON_POW_IN_5F_END,
+        TMCRegion.DUNGEON_POW_CLEAR,
+    },
+    "DHC": {
+        TMCRegion.DUNGEON_DHC_B1_WEST,
+        TMCRegion.DUNGEON_DHC_B2,
+        TMCRegion.DUNGEON_DHC_ENTRANCE,
+        TMCRegion.DUNGEON_DHC_B1_EAST,
+        TMCRegion.DUNGEON_DHC_1F,
+        TMCRegion.DUNGEON_DHC_OUTSIDE,
+        TMCRegion.DUNGEON_DHC_RED_WARP,
+        TMCRegion.DUNGEON_DHC_BLUE_WARP,
+    },
     "RC": {TMCRegion.DUNGEON_RC, TMCRegion.DUNGEON_RC_CLEAR},
 }
 

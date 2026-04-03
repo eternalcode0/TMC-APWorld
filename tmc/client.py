@@ -10,6 +10,7 @@ from Utils import async_start
 
 from .._bizhawk import ConnectorError, RequestFailedError, guarded_write, read, write
 from .._bizhawk.client import BizHawkClient
+from .constants import GAME
 from .locations import LocationData, all_locations, events
 
 if TYPE_CHECKING:
@@ -22,11 +23,11 @@ def get_version() -> str:
     return json.loads(pkgutil.get_data(__name__, "archipelago.json").decode())["world_version"]
 
 
-
 def _cmd_deathlink(self: "BizHawkClientCommandProcessor"):
     """Toggles death_link from client. Temporarily overrides yaml setting, resets after closing client."""
     from worlds._bizhawk.context import BizHawkClientContext
-    if self.ctx.game != "The Minish Cap":
+
+    if self.ctx.game != GAME:
         logger.info("You cannot run this command from outside The Minish Cap")
 
     assert isinstance(self.ctx, BizHawkClientContext)
@@ -42,7 +43,8 @@ def _cmd_deathlink(self: "BizHawkClientCommandProcessor"):
 def _cmd_deathlink_gameover(self: "BizHawkClientCommandProcessor"):
     """Toggles death_link_gameover from client. Temporarily overrides yaml setting, resets after closing client."""
     from worlds._bizhawk.context import BizHawkClientContext
-    if self.ctx.game != "The Minish Cap":
+
+    if self.ctx.game != GAME:
         logger.info("You cannot run this command from outside The Minish Cap")
 
     assert isinstance(self.ctx, BizHawkClientContext)
@@ -101,7 +103,7 @@ RAM_ADDRS = {
 
 
 class MinishCapClient(BizHawkClient):
-    game = "The Minish Cap"
+    game = GAME
     system = "GBA"
     patch_suffix = ".aptmc"
     location_by_id: dict[int, LocationData]
@@ -161,10 +163,7 @@ class MinishCapClient(BizHawkClient):
 
         if ctx.slot_data["remote_items"] == Toggle.option_true and not ctx.items_handling & 0b010:
             ctx.items_handling = 0b111
-            async_start(ctx.send_msgs([{
-                "cmd": "ConnectUpdate",
-                "items_handling": ctx.items_handling
-            }]))
+            async_start(ctx.send_msgs([{"cmd": "ConnectUpdate", "items_handling": ctx.items_handling}]))
 
             # Need to make sure items handling updates and we get the correct list of received items
             # before continuing. Otherwise we might give some duplicate items and skip others.
@@ -180,9 +179,11 @@ class MinishCapClient(BizHawkClient):
                 seed = await read(ctx.bizhawk_ctx, [(0x000620, len(ctx.server_seed_name), "ROM")])
                 seed = seed[0].decode("UTF-8")
                 if seed not in ctx.server_seed_name:
-                    logger.info("ERROR: The ROM you loaded is for a different game of AP. "
-                                "Please make sure the host has sent you the correct patch file,"
-                                "and that you have opened the correct ROM.")
+                    logger.info(
+                        "ERROR: The ROM you loaded is for a different game of AP. "
+                        "Please make sure the host has sent you the correct patch file,"
+                        "and that you have opened the correct ROM."
+                    )
                     raise ConnectorError("Loaded ROM is for Incorrect lobby.")
                 logger.info("Seed verified")
                 self.seed_verify = True
@@ -206,20 +207,25 @@ class MinishCapClient(BizHawkClient):
                 multiworld_version = ctx.slot_data["version"]
                 client_version = get_version()
                 if multiworld_version != client_version:
-                    logger.warn(f"The multiworld was generated on v{multiworld_version} but the client is using "
-                                f"v{client_version}. Consult the apworld releases page to ensure the versions are "
-                                "compatible.")
+                    logger.warn(
+                        f"The multiworld was generated on v{multiworld_version} but the client is using "
+                        f"v{client_version}. Consult the apworld releases page to ensure the versions are "
+                        "compatible."
+                    )
 
             # Handle giving the player items
-            read_result = await read(ctx.bizhawk_ctx, [
-                RAM_ADDRS["game_task"],  # Current state of game (is the player actually in-game?)
-                RAM_ADDRS["task_substate"],  # Is there any room transitions or anything similar
-                RAM_ADDRS["room_area_id"],
-                RAM_ADDRS["action_state"],
-                RAM_ADDRS["received_index"],
-                RAM_ADDRS["link_health"],
-                RAM_ADDRS["gameover"],
-            ])
+            read_result = await read(
+                ctx.bizhawk_ctx,
+                [
+                    RAM_ADDRS["game_task"],  # Current state of game (is the player actually in-game?)
+                    RAM_ADDRS["task_substate"],  # Is there any room transitions or anything similar
+                    RAM_ADDRS["room_area_id"],
+                    RAM_ADDRS["action_state"],
+                    RAM_ADDRS["received_index"],
+                    RAM_ADDRS["link_health"],
+                    RAM_ADDRS["gameover"],
+                ],
+            )
             if read_result is None:
                 return
 
@@ -264,9 +270,11 @@ class MinishCapClient(BizHawkClient):
             total = 0
             while not write_result:
                 # Write to the address if it hasn't changed
-                write_result = await guarded_write(ctx.bizhawk_ctx,
-                                                   [(0x3FF10, [pid, sid], "EWRAM")],
-                                                   [(0x3FF10, [0x0, 0x0], "EWRAM"), (0x2A4A, [1], "EWRAM")])
+                write_result = await guarded_write(
+                    ctx.bizhawk_ctx,
+                    [(0x3FF10, [pid, sid], "EWRAM")],
+                    [(0x3FF10, [0x0, 0x0], "EWRAM"), (0x2A4A, [1], "EWRAM")],
+                )
 
                 await asyncio.sleep(0.05)
                 total += 0.05
@@ -276,20 +284,31 @@ class MinishCapClient(BizHawkClient):
                     break
             if not write_result:
                 break
-            await write(ctx.bizhawk_ctx, [(
-                RAM_ADDRS["received_index"][0],
-                [(received_index + i + 1) // 0x100, (received_index + i + 1) % 0x100],
-                "EWRAM",
-            )])
+            await write(
+                ctx.bizhawk_ctx,
+                [
+                    (
+                        RAM_ADDRS["received_index"][0],
+                        [(received_index + i + 1) // 0x100, (received_index + i + 1) % 0x100],
+                        "EWRAM",
+                    )
+                ],
+            )
 
     async def handle_location_sending(self, ctx: "BizHawkClientContext") -> None:
         # Read all location flags in area and add to pending location checks if updates
-        locations_to_read = [self.location_by_id[loc_id] for loc_id in ctx.missing_locations
-                             if self.location_by_id[loc_id].ram_addr is not None]
+        locations_to_read = [
+            self.location_by_id[loc_id]
+            for loc_id in ctx.missing_locations
+            if self.location_by_id[loc_id].ram_addr is not None
+        ]
         location_reads = [(loc.ram_addr[0], 1, "EWRAM") for loc in locations_to_read]
         loc_bytes = await read(ctx.bizhawk_ctx, location_reads)
-        locs_to_send = [locations_to_read[i].id for i, loc_ram in enumerate(loc_bytes)
-                        if loc_ram[0] | locations_to_read[i].ram_addr[1] == loc_ram[0]]
+        locs_to_send = [
+            locations_to_read[i].id
+            for i, loc_ram in enumerate(loc_bytes)
+            if loc_ram[0] | locations_to_read[i].ram_addr[1] == loc_ram[0]
+        ]
         await self.handle_special_sending(ctx, locs_to_send)
         # Send location checks
         if len(locs_to_send) > 0:
@@ -302,17 +321,18 @@ class MinishCapClient(BizHawkClient):
         special_read = await read(ctx.bizhawk_ctx, [(0x2CA3, 3, "EWRAM")])
         goron_restocks = (special_read[0][0] & 0xC0).bit_count() + (special_read[0][1] & 0x03).bit_count()
         goron_slot_purchases = (special_read[0][1] & 0x1C) >> 2
-        goron_stock = SPECIAL_ADDRESSES[goron_restocks * 3:goron_restocks*3 + 3]
+        goron_stock = SPECIAL_ADDRESSES[goron_restocks * 3 : goron_restocks * 3 + 3]
         new_locs = [goron_stock[i] for i in range(3) if goron_slot_purchases & (1 << i)]
 
         cucco_rounds = special_read[0][2] >> 3  # Reads for rounds 1-9
         final_cucco_round = special_read[0][2] | 0x80 == special_read[0][2]  # Round 10
-        new_locs.extend(SPECIAL_ADDRESSES[15:15+cucco_rounds+int(final_cucco_round)])
+        new_locs.extend(SPECIAL_ADDRESSES[15 : 15 + cucco_rounds + int(final_cucco_round)])
 
         locs_to_send.extend(ctx.missing_locations.intersection(new_locs))
 
-    async def handle_death_link(self, ctx: "BizHawkClientContext", link_health: int, game_over: bool,
-                                action_state: int) -> None:
+    async def handle_death_link(
+        self, ctx: "BizHawkClientContext", link_health: int, game_over: bool, action_state: int
+    ) -> None:
         # If we processed a death on a previous loop
         if not self.death_link_ready:
             # Wait until player is not in a game_over state
@@ -355,21 +375,27 @@ class MinishCapClient(BizHawkClient):
 
     async def handle_room_change(self, ctx: "BizHawkClientContext", room_area_id) -> None:
         # Location Scouting
-        location_scouts = [loc_id for loc_id in ctx.missing_locations
-                           if self.location_by_id[loc_id].room_area == self.room
-                           and self.location_by_id[loc_id].scoutable]
+        location_scouts = [
+            loc_id
+            for loc_id in ctx.missing_locations
+            if self.location_by_id[loc_id].room_area == self.room and self.location_by_id[loc_id].scoutable
+        ]
         if len(location_scouts) > 0:
             await ctx.send_msgs([{"cmd": "LocationScouts", "locations": location_scouts, "create_as_hint": 2}])
 
         self.room = room_area_id
         # Room sync for poptracker tab tracking
-        await ctx.send_msgs([{
-            "cmd": "Set",
-            "key": f"tmc_room_{ctx.team}_{ctx.slot}",
-            "default": 0,
-            "want_reply": False,
-            "operations": [{"operation": "replace", "value": room_area_id}]
-        }])
+        await ctx.send_msgs(
+            [
+                {
+                    "cmd": "Set",
+                    "key": f"tmc_room_{ctx.team}_{ctx.slot}",
+                    "default": 0,
+                    "want_reply": False,
+                    "operations": [{"operation": "replace", "value": room_area_id}],
+                }
+            ]
+        )
 
     async def handle_event_setting(self, ctx: "BizHawkClientContext") -> None:
         # Batch all events together into one read
@@ -382,13 +408,17 @@ class MinishCapClient(BizHawkClient):
             if event_name in self.events_sent or read_events[i][0] | address_pair[1] != read_events[i][0]:
                 continue
             self.events_sent.add(event_name)
-            await ctx.send_msgs([{
-                "cmd": "Set",
-                "key": f"tmc_{event_name}_{ctx.team}_{ctx.slot}",
-                "default": 0,
-                "want_reply": False,
-                "operations": [{"operation": "replace", "value": 1}]
-            }])
+            await ctx.send_msgs(
+                [
+                    {
+                        "cmd": "Set",
+                        "key": f"tmc_{event_name}_{ctx.team}_{ctx.slot}",
+                        "default": 0,
+                        "want_reply": False,
+                        "operations": [{"operation": "replace", "value": 1}],
+                    }
+                ]
+            )
 
 
 SPECIAL_ADDRESSES = [
@@ -398,4 +428,4 @@ SPECIAL_ADDRESSES = [
     6029043, 6029044, 6029045,  # Goron Set 4
     6029046, 6029047, 6029048,  # Goron Set 5
     6029068, 6029069, 6029070, 6029071, 6029072, 6029073, 6029074, 6029075, 6029076, 6029077,  # Cucco Rounds 1-10
-]
+]  # fmt:off
