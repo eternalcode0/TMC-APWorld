@@ -1870,6 +1870,7 @@ class TMCEvent(StrEnum):
 
 
 class TMCRegion(StrEnum):
+    MENU = "Menu"
     SOUTH_FIELD = "South Field"
     SOUTH_PUDDLE = "South Puddle"
     HYRULE_TOWN = "Hyrule Town"

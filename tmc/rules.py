@@ -294,12 +294,12 @@ class StupidToDWestIceblock(Rule[TMinishCapWorld], game=GAME):
         west_item = world.get_location(TMCLocation.DROPLETS_ENTRANCE_B2_WEST_ICEBLOCK).item
         if (
             west_item is None
-            or west_item.name is not TMCItem.BIG_KEY_TOD
+            or west_item.name != TMCItem.BIG_KEY_TOD
             or world.options.dungeon_warp_tod.value != DungeonWarp.option_none
         ):
             return tod_four_key_rule.resolve(world)
         if (
-            west_item.name is TMCItem.BIG_KEY_TOD
+            west_item.name == TMCItem.BIG_KEY_TOD
             and world.options.dungeon_small_keys.value is DungeonItem.option_own_dungeon
         ):
             return tod_one_key_rule.resolve(world)
@@ -483,11 +483,13 @@ access_minish_woods_top_left = HasAny(TMCItem.FLIPPERS, TMCItem.ROCS_CAPE) | (
 
 dws_blue_warp = True_(options=dws_warp_blue_filter)
 dws_red_warp = True_(options=dws_warp_red_filter)
-dws_1st_door = Has(TMCItem.SMALL_KEY_DWS, count=FromMultiplierResolver(4, DWSKeyMultiplier))
+dws_1st_door = (
+    (Has(TMCItem.SMALL_KEY_DWS, count=FromMultiplierResolver(4, DWSKeyMultiplier)) & dws_warp_blue_filter) |
+    (Has(TMCItem.SMALL_KEY_DWS, count=FromMultiplierResolver(1, DWSKeyMultiplier)) & dws_warp_not_blue_filter))
 dws_2nd_half = Or(dws_two_key_rule, Has(TMCItem.GUST_JAR), options=dws_warp_not_blue_filter)
 cof_blue_warp = True_(options=cof_warp_blue_filter)
 cof_red_warp = True_(options=cof_warp_red_filter)
-fow_blue_warp = has_weapon_boss & fow_warp_blue_filter
+fow_blue_warp = (has_weapon_boss & fow_warp_blue_filter) | (True_(options=fow_warp_not_blue_filter))
 fow_red_warp = True_(options=fow_warp_red_filter)
 tod_blue_warp = has_weapon_scissor & tod_warp_blue_filter
 tod_red_warp = And(HasAll(TMCItem.BOMB_BAG, TMCItem.LANTERN), has_weapon_boss, options=tod_warp_red_filter)
@@ -495,7 +497,7 @@ tod_right_ice = HasAny(TMCEvent.DROPLETS_EAST_SWITCH, TMCItem.LANTERN)
 pow_blue_warp = has_weapon_boss & pow_warp_blue_filter
 pow_red_warp = True_(options=pow_warp_red_filter)
 pow_1st_door = (pow_four_key_rule & pow_warp_either_filter) | (pow_one_key_rule & pow_warp_neither_filter)
-pow_2nd_door = pow_six_key_rule & pow_warp_red_filter
+pow_2nd_door = (pow_six_key_rule & pow_warp_red_filter) | True_(options=pow_warp_not_red_filter)
 pow_red_chest = can_hit_distance & (Has(TMCItem.ROCS_CAPE, options=pow_warp_red_filter, filtered_resolution=True))
 pow_red_warp_door = pow_five_key_rule
 pow_last_door = pow_six_key_rule
@@ -534,6 +536,9 @@ def set_location_rules(world: MinishCapWorld):
 
 
 REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
+    TMCRegion.MENU: {
+        TMCRegion.SOUTH_FIELD: None,
+    },
     TMCRegion.SOUTH_FIELD: {
         TMCRegion.HYRULE_TOWN: None,
         TMCRegion.EASTERN_HILLS: smith_crest,
@@ -565,10 +570,7 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
     TMCRegion.CASTLE_EXTERIOR: {
         TMCRegion.NORTH_FIELD: None,  # redundant
         TMCRegion.SANCTUARY: None,
-    },
-    TMCRegion.SANCTUARY: {
-        TMCRegion.CASTLE_EXTERIOR: None,
-        TMCRegion.STAINED_GLASS: CanActivatePedestal(),
+        TMCRegion.DUNGEON_DHC_ENTRANCE: True_(options=[OptionFilter(DHCAccess, DHCAccess.option_open)])
     },
     TMCRegion.LONLON: {
         TMCRegion.HYRULE_TOWN: Has(TMCItem.BOMB_BAG),  # redundant
@@ -668,19 +670,15 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
         TMCRegion.CLOUDS: None,
         TMCRegion.DUNGEON_POW_ENTRANCE: None,
     },
-    TMCRegion.CASTLE_EXTERIOR: {
-        TMCRegion.DUNGEON_DHC_ENTRANCE: True_(options=[OptionFilter(DHCAccess, DHCAccess.option_open)])
-    },
     # region DWS
     TMCRegion.DUNGEON_DWS_ENTRANCE: {
         TMCRegion.DUNGEON_DWS_BARREL: dws_1st_door,
         TMCRegion.DUNGEON_DWS_BLUE_WARP: dws_blue_warp,
+        TMCRegion.DUNGEON_DWS_RED_WARP: dws_red_warp,
+        TMCRegion.DUNGEON_DWS_CLEAR: HasAll(TMCItem.BIG_KEY_DWS, TMCItem.GUST_JAR) & has_weapon_boss,
     },
     TMCRegion.DUNGEON_DWS_BLUE_WARP: {
         TMCRegion.DUNGEON_DWS_BACK_HALF: None,
-    },
-    TMCRegion.DUNGEON_DWS_ENTRANCE: {
-        TMCRegion.DUNGEON_DWS_RED_WARP: dws_red_warp,
     },
     TMCRegion.DUNGEON_DWS_BARREL: {
         TMCRegion.DUNGEON_DWS_MULLDOZER: Has(TMCItem.SMALL_KEY_DWS, 4),
@@ -694,9 +692,6 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
     TMCRegion.DUNGEON_DWS_MULLDOZER: {
         TMCRegion.DUNGEON_DWS_BACK_HALF: None,
     },
-    TMCRegion.DUNGEON_DWS_ENTRANCE: {
-        TMCRegion.DUNGEON_DWS_CLEAR: HasAll(TMCItem.BIG_KEY_DWS, TMCItem.GUST_JAR) & has_weapon_boss,
-    },
     # endregion
     # region CoF
     TMCRegion.DUNGEON_COF_ENTRANCE: {
@@ -708,27 +703,23 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
             has_shield
             | HasAny(TMCItem.CANE_OF_PACCI, TMCItem.BOMB_BAG)
             | (downthrust & downthrust_beetle_filter)  # TODO: Double-check correct usage of optionfilter merging
-        )
+        ),
+        TMCRegion.DUNGEON_COF_BLUE_WARP: cof_blue_warp,
+        TMCRegion.DUNGEON_COF_LAVA_BASEMENT: cof_red_warp,
     },
     TMCRegion.DUNGEON_COF_MAIN: {
         TMCRegion.DUNGEON_COF_MINECART: (
-            (Has(TMCItem.SMALL_KEY_COF, 2) & dws_warp_blue_filter)
-            | (Has(TMCItem.SMALL_KEY_COF, 1) & dws_warp_not_blue_filter)
+            (Has(TMCItem.SMALL_KEY_COF, 2) & cof_warp_blue_filter)
+            | (Has(TMCItem.SMALL_KEY_COF, 1) & cof_warp_not_blue_filter)
         )
         & has_sword
     },
     TMCRegion.DUNGEON_COF_MINECART: {
         TMCRegion.DUNGEON_COF_BLUE_WARP: has_weapon & HasAny(TMCItem.CANE_OF_PACCI, TMCItem.ROCS_CAPE),
     },
-    TMCRegion.DUNGEON_COF_ENTRANCE: {
-        TMCRegion.DUNGEON_COF_BLUE_WARP: cof_blue_warp,
-    },
     TMCRegion.DUNGEON_COF_BLUE_WARP: {
         TMCRegion.DUNGEON_COF_MINECART: Has(TMCItem.CANE_OF_PACCI),
         TMCRegion.DUNGEON_COF_LAVA_BASEMENT: has_sword & Has(TMCItem.SMALL_KEY_COF, 2) & Has(TMCItem.CANE_OF_PACCI),
-    },
-    TMCRegion.DUNGEON_COF_ENTRANCE: {
-        TMCRegion.DUNGEON_COF_LAVA_BASEMENT: cof_red_warp,
     },
     TMCRegion.DUNGEON_COF_LAVA_BASEMENT: {
         TMCRegion.DUNGEON_COF_CLEAR: has_sword
@@ -838,6 +829,10 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
     },
     # endregion
     # region Sanctuary
+    TMCRegion.SANCTUARY: {
+        TMCRegion.CASTLE_EXTERIOR: None,
+        TMCRegion.STAINED_GLASS: CanActivatePedestal(),
+    },
     TMCRegion.STAINED_GLASS: {
         TMCRegion.VAATI_FIGHT: And(
             HasAll(TMCItem.GUST_JAR, TMCItem.CANE_OF_PACCI),
@@ -873,9 +868,7 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
     TMCRegion.DUNGEON_DHC_RED_WARP: {
         TMCRegion.DUNGEON_DHC_BLUE_WARP: And(
             Has(TMCItem.ROCS_CAPE), dhc_switch_gap, HasAny(TMCItem.BOMB_BAG, TMCItem.GUST_JAR), has_weapon_boss
-        )
-    },
-    TMCRegion.DUNGEON_DHC_RED_WARP: {
+        ),
         TMCRegion.VAATI_FIGHT: And(
             HasAll(TMCItem.BIG_KEY_DHC, TMCItem.GUST_JAR, TMCItem.CANE_OF_PACCI),
             has_weapon_boss,  # Darknut
@@ -1341,8 +1334,8 @@ LOCATION_RULES: dict[TMCLocation, Rule[Any] | None] = {
     TMCLocation.FALLS_WATER_DIG_CAVE_FUSION_CHEST:  # Fusion 1F
     And(Has(TMCItem.MOLE_MITTS), cape_extend),
     # Fusion 09
-    # TMCLocation.FALLS_1ST_CAVE_CHEST: None,
-    TMCLocation.FALLS_CLIFF_CHEST: CanSplit(3, True),
+    TMCLocation.FALLS_1ST_CAVE_CHEST: Has(TMCItem.BOMB_BAG),
+    TMCLocation.FALLS_CLIFF_CHEST: Has(TMCItem.BOMB_BAG) & CanSplit(3, True),
     TMCLocation.FALLS_SOUTH_DIG_SPOT: Has(TMCItem.MOLE_MITTS),
     TMCLocation.FALLS_GOLDEN_TEKTITE: has_sword,  # Fusion 4A
     TMCLocation.FALLS_NORTH_DIG_SPOT: Has(TMCItem.MOLE_MITTS),

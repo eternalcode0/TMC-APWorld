@@ -16,9 +16,6 @@ def excluded_locations_by_region(region: str, disabled_locations: set[str]):
 
 
 def create_regions(world: MinishCapWorld, disabled_locations: set[str], disabled_dungeons: set[str]):
-    menu_region = MinishCapRegion("Menu", world.player, world.multiworld)
-    world.multiworld.regions.append(menu_region)
-
     for region_key in TMCRegion:
         create_region(world, region_key.value, excluded_locations_by_region(region_key.value, disabled_locations))
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 from BaseClasses import Location
 
@@ -50,9 +50,9 @@ def get_location_map(
 @dataclass
 class LocationData:
     id: int | None
-    name: str
-    region: str
-    vanilla_item: str | None
+    name: TMCLocation
+    region: TMCRegion
+    vanilla_item: TMCItem | None
     """The item name of what is normally given in this location"""
     rom_addr: tuple[list[int | None] | int | None, list[int | None] | int | None] | None
     """The address in the rom for placing items"""
@@ -6106,50 +6106,29 @@ events: dict[tuple[int, int], str] = {
     (0x2D8A, 0x40): "tod_west_lever",
 }
 
+def loc_name_filter_region(region_list: Iterable[TMCRegion]):
+    return {loc.name.value for loc in all_locations if loc.region in region_list}
+
+def loc_name_pool(pool: Iterable[str]):
+    return {loc.name.value for loc in all_locations if loc.pools.issubset(pool) and len(loc.pools)}
+
 location_table_by_name: dict[str, LocationData] = {location.name: location for location in all_locations}
 location_groups: dict[str, set[str]] = {
-    "DWS": set(loc.name for loc in all_locations if loc.region in DUNGEON_REGIONS["DWS"]),
-    "CoF": set(loc.name for loc in all_locations if loc.region in DUNGEON_REGIONS["CoF"]),
-    "FoW": set(loc.name for loc in all_locations if loc.region in DUNGEON_REGIONS["FoW"]),
-    "ToD": set(loc.name for loc in all_locations if loc.region in DUNGEON_REGIONS["ToD"]),
-    "PoW": set(loc.name for loc in all_locations if loc.region in DUNGEON_REGIONS["PoW"]),
-    "RC": set(loc.name for loc in all_locations if loc.region in DUNGEON_REGIONS["RC"]),
-    "DHC": set(loc.name for loc in all_locations if loc.region in DUNGEON_REGIONS["DHC"]),
-    "Graveyard": set(loc.name for loc in all_locations if loc.region == TMCRegion.GRAVEYARD),
-    "Goron": {
-        TMCLocation.TOWN_GORON_MERCHANT_1_LEFT,
-        TMCLocation.TOWN_GORON_MERCHANT_1_MIDDLE,
-        TMCLocation.TOWN_GORON_MERCHANT_1_RIGHT,
-        TMCLocation.TOWN_GORON_MERCHANT_2_LEFT,
-        TMCLocation.TOWN_GORON_MERCHANT_2_MIDDLE,
-        TMCLocation.TOWN_GORON_MERCHANT_2_RIGHT,
-        TMCLocation.TOWN_GORON_MERCHANT_3_LEFT,
-        TMCLocation.TOWN_GORON_MERCHANT_3_MIDDLE,
-        TMCLocation.TOWN_GORON_MERCHANT_3_RIGHT,
-        TMCLocation.TOWN_GORON_MERCHANT_4_LEFT,
-        TMCLocation.TOWN_GORON_MERCHANT_4_MIDDLE,
-        TMCLocation.TOWN_GORON_MERCHANT_4_RIGHT,
-        TMCLocation.TOWN_GORON_MERCHANT_5_LEFT,
-        TMCLocation.TOWN_GORON_MERCHANT_5_MIDDLE,
-        TMCLocation.TOWN_GORON_MERCHANT_5_RIGHT,
-    },
-    "Cuccos": {
-        TMCLocation.TOWN_CUCCOS_LV_1_NPC,
-        TMCLocation.TOWN_CUCCOS_LV_2_NPC,
-        TMCLocation.TOWN_CUCCOS_LV_3_NPC,
-        TMCLocation.TOWN_CUCCOS_LV_4_NPC,
-        TMCLocation.TOWN_CUCCOS_LV_5_NPC,
-        TMCLocation.TOWN_CUCCOS_LV_6_NPC,
-        TMCLocation.TOWN_CUCCOS_LV_7_NPC,
-        TMCLocation.TOWN_CUCCOS_LV_8_NPC,
-        TMCLocation.TOWN_CUCCOS_LV_9_NPC,
-        TMCLocation.TOWN_CUCCOS_LV_10_NPC,
-    },
-    "Gold Enemies": set(loc.name for loc in all_locations if loc.pools.issubset({POOL_ENEMY}) and len(loc.pools)),
-    "Obscure": set(loc.name for loc in all_locations if loc.pools.issubset(OBSCURE_SET) and len(loc.pools)),
-    "Shop": set(loc.name for loc in all_locations if loc.pools.issubset(SHOP_SET) and len(loc.pools)),
-    "Rupees": set(loc.name for loc in all_locations if loc.pools.issubset({POOL_RUPEE}) and len(loc.pools)),
-    "Pots": set(loc.name for loc in all_locations if loc.pools.issubset({POOL_POT}) and len(loc.pools)),
-    "Digging": set(loc.name for loc in all_locations if loc.pools.issubset({POOL_DIG}) and len(loc.pools)),
-    "Underwater": set(loc.name for loc in all_locations if loc.pools.issubset({POOL_WATER}) and len(loc.pools)),
+    "DWS": loc_name_filter_region(DUNGEON_REGIONS["DWS"]),
+    "CoF": loc_name_filter_region(DUNGEON_REGIONS["CoF"]),
+    "FoW": loc_name_filter_region(DUNGEON_REGIONS["FoW"]),
+    "ToD": loc_name_filter_region(DUNGEON_REGIONS["ToD"]),
+    "PoW": loc_name_filter_region(DUNGEON_REGIONS["PoW"]),
+    "RC": loc_name_filter_region(DUNGEON_REGIONS["RC"]),
+    "DHC": loc_name_filter_region(DUNGEON_REGIONS["DHC"]),
+    "Graveyard": loc_name_filter_region([TMCRegion.GRAVEYARD]),
+    "Goron": loc_name_pool({f"{POOL_GORON}{count}" for count in range(1, 6)}),
+    "Cuccos": loc_name_pool({f"{POOL_CUCCO}{count}" for count in range(1, 11)}),
+    "Gold Enemies": loc_name_pool({POOL_ENEMY}),
+    "Obscure": loc_name_pool(OBSCURE_SET),
+    "Shop": loc_name_pool(SHOP_SET),
+    "Rupees": loc_name_pool({POOL_RUPEE}),
+    "Pots": loc_name_pool({POOL_POT}),
+    "Digging": loc_name_pool({POOL_DIG}),
+    "Underwater": loc_name_pool({POOL_WATER}),
 }

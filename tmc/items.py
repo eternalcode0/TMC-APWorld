@@ -2,17 +2,18 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from BaseClasses import ItemClassification
+
+from .constants import MinishCapItem, TMCItem, TMCLocation
 from .options import (
     DHCAccess,
-    DungeonItem,
-    Goal,
-    ShuffleElements,
-    DungeonWarp,
-    PedReward,
     DungeonCompasses,
+    DungeonItem,
     DungeonMaps,
+    DungeonWarp,
+    Goal,
+    PedReward,
+    ShuffleElements,
 )
-from .constants import TMCItem, TMCLocation, MinishCapItem
 
 if TYPE_CHECKING:
     from . import MinishCapWorld
@@ -36,11 +37,11 @@ class ItemData:
         return (self.byte_ids[0] << 8) + self.byte_ids[1]
 
 
-def pool_elements() -> list[str]:
+def pool_elements() -> list[TMCItem]:
     return [TMCItem.EARTH_ELEMENT, TMCItem.FIRE_ELEMENT, TMCItem.WATER_ELEMENT, TMCItem.WIND_ELEMENT]
 
 
-def pool_random_bottle_contents() -> list[str]:
+def pool_random_bottle_contents() -> list[TMCItem]:
     return [
         TMCItem.EMPTY_BOTTLE,
         TMCItem.LON_LON_BUTTER,
@@ -63,11 +64,11 @@ def pool_random_bottle_contents() -> list[str]:
     ]
 
 
-def pool_bottles() -> list[str]:
+def pool_bottles() -> list[TMCItem]:
     return [TMCItem.EMPTY_BOTTLE] * 4
 
 
-def pool_baseitems() -> list[str]:
+def pool_baseitems() -> list[TMCItem]:
     return [
         *[TMCItem.BOMB_BAG] * 4,
         TMCItem.REMOTE_BOMB,
@@ -108,7 +109,7 @@ def pool_baseitems() -> list[str]:
     ]
 
 
-def pool_traps() -> list[str]:
+def pool_traps() -> list[TMCItem]:
     return [
         TMCItem.TRAP_ICE,
         TMCItem.TRAP_FIRE,
@@ -123,7 +124,7 @@ def pool_traps() -> list[str]:
     ]
 
 
-def pool_dungeonmaps(world: "MinishCapWorld") -> list[str]:
+def pool_dungeonmaps(world: "MinishCapWorld") -> list[TMCItem]:
     maps = [
         TMCItem.DUNGEON_MAP_DWS,
         TMCItem.DUNGEON_MAP_COF,
@@ -140,7 +141,7 @@ def pool_dungeonmaps(world: "MinishCapWorld") -> list[str]:
     return maps
 
 
-def pool_compass(world: "MinishCapWorld") -> list[str]:
+def pool_compass(world: "MinishCapWorld") -> list[TMCItem]:
     compasses = [
         TMCItem.DUNGEON_COMPASS_DWS,
         TMCItem.DUNGEON_COMPASS_COF,
@@ -157,7 +158,7 @@ def pool_compass(world: "MinishCapWorld") -> list[str]:
     return compasses
 
 
-def pool_bigkeys(world: "MinishCapWorld") -> list[str]:
+def pool_bigkeys(world: "MinishCapWorld") -> list[TMCItem]:
     keys = [TMCItem.BIG_KEY_DWS, TMCItem.BIG_KEY_COF, TMCItem.BIG_KEY_FOW, TMCItem.BIG_KEY_POW]
     if (
         world.options.dhc_access != DHCAccess.option_closed
@@ -168,7 +169,7 @@ def pool_bigkeys(world: "MinishCapWorld") -> list[str]:
     return keys
 
 
-def pool_swords(world: "MinishCapWorld") -> list[str]:
+def pool_swords(world: "MinishCapWorld") -> list[TMCItem]:
     if world.options.progressive_sword.value:
         return [TMCItem.PROGRESSIVE_SWORD] * 5
     return [
@@ -180,25 +181,25 @@ def pool_swords(world: "MinishCapWorld") -> list[str]:
     ]
 
 
-def pool_bow(world: "MinishCapWorld") -> list[str]:
+def pool_bow(world: "MinishCapWorld") -> list[TMCItem]:
     if world.options.progressive_bow.value:
         return [TMCItem.PROGRESSIVE_BOW] * 2
     return [TMCItem.BOW, TMCItem.LIGHT_ARROW]
 
 
-def pool_boomerang(world: "MinishCapWorld") -> list[str]:
+def pool_boomerang(world: "MinishCapWorld") -> list[TMCItem]:
     if world.options.progressive_boomerang.value:
         return [TMCItem.PROGRESSIVE_BOOMERANG] * 2
     return [TMCItem.BOOMERANG, TMCItem.MAGIC_BOOMERANG]
 
 
-def pool_shield(world: "MinishCapWorld") -> list[str]:
+def pool_shield(world: "MinishCapWorld") -> list[TMCItem]:
     if world.options.progressive_shield.value:
         return [TMCItem.PROGRESSIVE_SHIELD] * 2
     return [TMCItem.SHIELD, TMCItem.MIRROR_SHIELD]
 
 
-def pool_scroll(world: "MinishCapWorld") -> list[str]:
+def pool_scroll(world: "MinishCapWorld") -> list[TMCItem]:
     if world.options.progressive_scroll.value:
         return [TMCItem.PROGRESSIVE_SCROLL] * 5
     return [
@@ -210,13 +211,13 @@ def pool_scroll(world: "MinishCapWorld") -> list[str]:
     ]
 
 
-def pool_health(world: "MinishCapWorld") -> list[str]:
+def pool_health(world: "MinishCapWorld") -> list[TMCItem]:
     return [TMCItem.HEART_CONTAINER] * world.options.heart_containers.value + [TMCItem.HEART_PIECE] * (
         world.options.piece_of_hearts.value * 4
     )
 
 
-def pool_smallkeys(world: "MinishCapWorld") -> list[str]:
+def pool_smallkeys(world: "MinishCapWorld") -> list[TMCItem]:
     keys = [
         *[TMCItem.SMALL_KEY_DWS] * 4,
         *[TMCItem.SMALL_KEY_COF] * 2,
@@ -230,19 +231,19 @@ def pool_smallkeys(world: "MinishCapWorld") -> list[str]:
     return keys
 
 
-def pool_kinstone_gold() -> list[str]:
+def pool_kinstone_gold() -> list[TMCItem]:
     return [*[TMCItem.KINSTONE_GOLD_CLOUD] * 5, *[TMCItem.KINSTONE_GOLD_SWAMP] * 3, TMCItem.KINSTONE_GOLD_FALLS]
 
 
-def pool_kinstone_red() -> list[str]:
+def pool_kinstone_red() -> list[TMCItem]:
     return [*[TMCItem.KINSTONE_RED_W] * 9, *[TMCItem.KINSTONE_RED_ANGLE] * 7, *[TMCItem.KINSTONE_RED_E] * 8]
 
 
-def pool_kinstone_blue() -> list[str]:
+def pool_kinstone_blue() -> list[TMCItem]:
     return [*[TMCItem.KINSTONE_BLUE_L] * 9, *[TMCItem.KINSTONE_BLUE_6] * 9]
 
 
-def pool_kinstone_green() -> list[str]:
+def pool_kinstone_green() -> list[TMCItem]:
     return [
         *[TMCItem.KINSTONE_GREEN_ANGLE] * 17,
         *[TMCItem.KINSTONE_GREEN_SQUARE] * 16,
@@ -296,7 +297,7 @@ def get_item_pool(world: "MinishCapWorld") -> list[MinishCapItem]:
         and world.options.dungeon_warp_tod.value == DungeonWarp.option_none
     ):
         location = world.random.choice(
-            [TMCLocation.DROPLETS_ENTRANCE_B2_EAST_ICEBLOCK, TMCLocation.DROPLETS_ENTRANCE_B2_WEST_ICEBLOCK]
+            [TMCLocation.DROPLETS_ENTRANCE_B2_WEST_ICEBLOCK]
         )
         world.get_location(location).place_locked_item(world.create_item(TMCItem.BIG_KEY_TOD))
 
@@ -314,7 +315,7 @@ def get_item_pool(world: "MinishCapWorld") -> list[MinishCapItem]:
     if world.options.shuffle_elements.value is ShuffleElements.option_anywhere:
         item_pool.extend(pool_elements())
 
-    return [world.create_item(item) for item in item_pool]
+    return [world.create_item(item.value) for item in item_pool]
 
 
 def get_pre_fill_pool(world: "MinishCapWorld") -> list[MinishCapItem]:
@@ -340,10 +341,10 @@ def get_pre_fill_pool(world: "MinishCapWorld") -> list[MinishCapItem]:
         known_start_inv[s] = known_start_inv.get(s, 0) + 1
         return s not in start_inv or known_start_inv[s] > start_inv[s]
 
-    return [world.create_item(item) for item in pre_fill_pool if keep_item(item)]
+    return [world.create_item(item.value) for item in pre_fill_pool if keep_item(item)]
 
 
-item_table: dict[str, ItemData] = {
+item_table: dict[TMCItem, ItemData] = {
     TMCItem.PROGRESSIVE_SCROLL: ItemData(ItemClassification.progression, (0x05, 0x04)),
     TMCItem.SMITHS_SWORD: ItemData(ItemClassification.progression, (0x01, 0x00)),
     TMCItem.WHITE_SWORD_GREEN: ItemData(ItemClassification.progression, (0x02, 0x00)),
@@ -546,7 +547,7 @@ def get_filler_item_selection(world: "MinishCapWorld"):
     return [name for name, count in frequencies.items() for _ in range(count)]
 
 
-item_groups: dict[str, set[str]] = {
+item_groups_enum: dict[str, set[str]] = {
     "Spin Scrolls": {
         TMCItem.PROGRESSIVE_SCROLL,
         TMCItem.SPIN_ATTACK,
@@ -823,3 +824,4 @@ item_groups: dict[str, set[str]] = {
     "Filler": {name for name, data in item_table.items() if data.classification == ItemClassification.filler},
     "Traps": {name for name, data in item_table.items() if data.classification == ItemClassification.trap},
 }
+item_groups = {group_name: map(lambda item: item.value, group) for group_name, group in item_groups_enum.items()}

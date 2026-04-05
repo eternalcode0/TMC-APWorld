@@ -102,8 +102,8 @@ class MinishCapWorld(World):
     options_dataclass = MinishCapOptions
     options: MinishCapOptions
     settings: ClassVar[MinishCapSettings]
-    item_name_to_id = {name: data.item_id for name, data in item_table.items()}
-    location_name_to_id = {loc_data.name: loc_data.id for loc_data in all_locations}
+    item_name_to_id = {name.value: data.item_id for name, data in item_table.items()}
+    location_name_to_id = {loc_data.name.value: loc_data.id for loc_data in all_locations}
     item_name_groups = item_groups
     item_pool = []
     pre_fill_pool = []
@@ -285,18 +285,19 @@ class MinishCapWorld(World):
         rules.set_rules(self)
 
     def connect_entrances(self) -> None:
-        from Utils import visualize_regions
+        if self.player_name == "TEST123":
+            from Utils import visualize_regions
 
-        state = self.multiworld.get_all_state(False)
-        state.update_reachable_regions(self.player)
-        visualize_regions(
-            self.get_region(self.origin_region_name),
-            f"tmc_{self.player_name}.puml",
-            show_other_regions=True,
-            linetype_ortho=False,
-            show_entrance_names=True,
-            regions_to_highlight=set(state.reachable_regions[self.player]),
-        )
+            state = self.multiworld.get_all_state(False)
+            state.update_reachable_regions(self.player)
+            visualize_regions(
+                self.get_region(self.origin_region_name),
+                f"tmc_{self.player_name}.puml",
+                show_other_regions=True,
+                linetype_ortho=False,
+                show_entrance_names=True,
+                regions_to_highlight=set(state.reachable_regions[self.player]),
+            )
 
     # All rules finalized
     # location progress type assigned, excluded overrides priority
