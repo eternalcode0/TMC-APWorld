@@ -19,12 +19,7 @@ if TYPE_CHECKING:
     from . import MinishCapWorld
 
 
-DEPRIORITIZED_FALLBACK = 0
-"""backwards-compatible fallback for AP v0.6.2 and prior"""
-try:
-    DEPRIORITIZED_FALLBACK = ItemClassification.progression_deprioritized_skip_balancing
-except AttributeError:
-    DEPRIORITIZED_FALLBACK = ItemClassification.progression_skip_balancing
+DEPRIORITIZED_FALLBACK = ItemClassification.progression_deprioritized_skip_balancing
 
 
 @dataclass
@@ -297,8 +292,10 @@ def get_item_pool(world: "MinishCapWorld") -> list[MinishCapItem]:
         and world.options.dungeon_warp_tod.value == DungeonWarp.option_none
     ):
         location = world.random.choice(
-            [TMCLocation.DROPLETS_ENTRANCE_B2_WEST_ICEBLOCK]
+            [TMCLocation.DROPLETS_ENTRANCE_B2_EAST_ICEBLOCK, TMCLocation.DROPLETS_ENTRANCE_B2_WEST_ICEBLOCK]
         )
+        if location == TMCLocation.DROPLETS_ENTRANCE_B2_WEST_ICEBLOCK:
+            world.annoying_tod_bk_placement = True
         world.get_location(location).place_locked_item(world.create_item(TMCItem.BIG_KEY_TOD))
 
     if not world.options.random_bottle_contents.value:
@@ -452,12 +449,12 @@ item_table: dict[TMCItem, ItemData] = {
     TMCItem.HEART_REFILL: ItemData(ItemClassification.filler, (0x5F, 0x00)),
     TMCItem.FAIRY_REFILL: ItemData(ItemClassification.filler, (0x60, 0x00)),
     TMCItem.SHELLS_30: ItemData(ItemClassification.filler, (0x61, 0x00)),
-    TMCItem.HEART_CONTAINER: ItemData(DEPRIORITIZED_FALLBACK, (0x62, 0x00)),
-    TMCItem.HEART_PIECE: ItemData(DEPRIORITIZED_FALLBACK, (0x63, 0x00)),
+    TMCItem.HEART_CONTAINER: ItemData(ItemClassification.progression_deprioritized_skip_balancing, (0x62, 0x00)),
+    TMCItem.HEART_PIECE: ItemData(ItemClassification.progression_deprioritized_skip_balancing, (0x63, 0x00)),
     TMCItem.BIG_WALLET: ItemData(ItemClassification.progression, (0x64, 0x00)),
     TMCItem.BOMB_BAG: ItemData(ItemClassification.progression, (0x65, 0x00)),
     TMCItem.QUIVER: ItemData(ItemClassification.useful, (0x66, 0x00)),
-    TMCItem.FIGURINE: ItemData(DEPRIORITIZED_FALLBACK, (0x67, 0x00)),
+    TMCItem.FIGURINE: ItemData(ItemClassification.progression_deprioritized_skip_balancing, (0x67, 0x00)),
     TMCItem.BRIOCHE: ItemData(ItemClassification.filler, (0x68, 0x00)),
     TMCItem.CROISSANT: ItemData(ItemClassification.filler, (0x69, 0x00)),
     TMCItem.PIE: ItemData(ItemClassification.filler, (0x6A, 0x00)),

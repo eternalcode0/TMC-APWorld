@@ -291,19 +291,12 @@ class StupidToDWestIceblock(Rule[TMinishCapWorld], game=GAME):
         ToD is stupid, getting to the west ice block needs special access rules based off what got placed at it.
         Item placement for this location only occurs in create_items stage.
         """
-        west_item = world.get_location(TMCLocation.DROPLETS_ENTRANCE_B2_WEST_ICEBLOCK).item
-        if (
-            west_item is None
-            or west_item.name != TMCItem.BIG_KEY_TOD
-            or world.options.dungeon_warp_tod.value != DungeonWarp.option_none
-        ):
+        west_item = world.annoying_tod_bk_placement
+        if world.options.dungeon_warp_tod.value != DungeonWarp.option_none:
             return tod_four_key_rule.resolve(world)
-        if (
-            west_item.name == TMCItem.BIG_KEY_TOD
-            and world.options.dungeon_small_keys.value is DungeonItem.option_own_dungeon
-        ):
+        if west_item and world.options.dungeon_small_keys.value is DungeonItem.option_own_dungeon:
             return tod_one_key_rule.resolve(world)
-        return False_().resolve(world)
+        return tod_four_key_rule.resolve(world)
 
 
 dws_warp_not_blue_filter = [OptionFilter(WarpDWS, (0, 2), operator="in")]
@@ -484,8 +477,8 @@ access_minish_woods_top_left = HasAny(TMCItem.FLIPPERS, TMCItem.ROCS_CAPE) | (
 dws_blue_warp = True_(options=dws_warp_blue_filter)
 dws_red_warp = True_(options=dws_warp_red_filter)
 dws_1st_door = (
-    (Has(TMCItem.SMALL_KEY_DWS, count=FromMultiplierResolver(4, DWSKeyMultiplier)) & dws_warp_blue_filter) |
-    (Has(TMCItem.SMALL_KEY_DWS, count=FromMultiplierResolver(1, DWSKeyMultiplier)) & dws_warp_not_blue_filter))
+    Has(TMCItem.SMALL_KEY_DWS, count=FromMultiplierResolver(4, DWSKeyMultiplier)) & dws_warp_blue_filter
+) | (Has(TMCItem.SMALL_KEY_DWS, count=FromMultiplierResolver(1, DWSKeyMultiplier)) & dws_warp_not_blue_filter)
 dws_2nd_half = Or(dws_two_key_rule, Has(TMCItem.GUST_JAR), options=dws_warp_not_blue_filter)
 cof_blue_warp = True_(options=cof_warp_blue_filter)
 cof_red_warp = True_(options=cof_warp_red_filter)
@@ -570,7 +563,7 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
     TMCRegion.CASTLE_EXTERIOR: {
         TMCRegion.NORTH_FIELD: None,  # redundant
         TMCRegion.SANCTUARY: None,
-        TMCRegion.DUNGEON_DHC_ENTRANCE: True_(options=[OptionFilter(DHCAccess, DHCAccess.option_open)])
+        TMCRegion.DUNGEON_DHC_ENTRANCE: True_(options=[OptionFilter(DHCAccess, DHCAccess.option_open)]),
     },
     TMCRegion.LONLON: {
         TMCRegion.HYRULE_TOWN: Has(TMCItem.BOMB_BAG),  # redundant
@@ -875,7 +868,7 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
             CanSplit(4),
             has_bow,
             dark_room,  # Don't make people do the final boss in the dark
-        )
+        ),
     },
     # endregion
 }

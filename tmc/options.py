@@ -1025,10 +1025,7 @@ def get_option_data(world: "MinishCapWorld"):
         (Goal.option_pedestal, DHCAccess.option_open): 5,
     }
 
-    try:
-        world_version = world.world_version.as_simple_string()
-    except AttributeError:
-        world_version = "0.3.0"
+    world_version = world.world_version.as_simple_string()
 
     return {
         "version": world_version,
@@ -1135,6 +1132,20 @@ SLOT_DATA_OPTIONS = [
     "tricks",
 ]
 """The yaml options that'll be transfered into slot_data for the tracker"""
+
+
+EXCLUDE_OPTIONS = [
+    "progression_balancing",
+    "accessibility",
+    "local_items",
+    "non_local_items",
+    "start_hints",
+    "start_location_hints",
+    "exclude_locations",
+    "priority_locations",
+    "item_links",
+    "plando_items",
+]
 
 
 OPTION_GROUPS = [

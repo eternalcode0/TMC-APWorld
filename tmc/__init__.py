@@ -3,17 +3,16 @@ Initialization module for The Legend of Zelda - The Minish Cap.
 Handles the Web page for yaml generation, saving rom file and high-level generation.
 """
 
-from enum import StrEnum
-
 import logging
 import os
 import pkgutil
-from typing import ClassVar, TextIO
+from enum import StrEnum
+from typing import Any, ClassVar, TextIO
 
 import settings
 from BaseClasses import Item, ItemClassification, Tutorial
 from Fill import FillError
-from Options import OptionError
+from Options import Option, OptionError
 from worlds.AutoWorld import WebWorld, World
 
 from . import rules
@@ -34,6 +33,7 @@ from .locations import (
     location_groups,
 )
 from .options import (
+    EXCLUDE_OPTIONS,
     OPTION_GROUPS,
     PRESETS,
     SLOT_DATA_OPTIONS,
@@ -114,10 +114,19 @@ class MinishCapWorld(World):
     figurines_placed = 0
     filler_items_distribution = None
 
+    slot_data: dict[str, Any] = {}
+    annoying_tod_bk_placement: bool = False
+    ut_can_gen_without_yaml = True
+    is_ut: bool
+
     # region APWorld Generation
     # sorted in execution order
 
     def generate_early(self) -> None:
+        # UT shenanigans
+        self.is_ut = getattr(self.multiworld, "generation_is_fake", False)
+        self.prepare_ut()
+
         options = self.options
 
         enabled_pools = set(DEFAULT_SET)
@@ -133,7 +142,7 @@ class MinishCapWorld(World):
             enabled_pools.add(POOL_ENEMY)
 
         if options.figurine_amount < options.ped_figurines:
-            options.figurine_amount = options.ped_figurines
+            options.figurine_amount.value = options.ped_figurines.value
 
         enabled_pools.update([f"cucco:{round_num}" for round_num in range(10, 10 - options.cucco_rounds.value, -1)])
         enabled_pools.update([f"goron:{round_num}" for round_num in range(1, options.goron_sets.value + 1)])
@@ -333,16 +342,12 @@ class MinishCapWorld(World):
     def extend_hint_information(self, hint_data: dict[int, dict[int, str]]):
         pass
 
-    def fill_slot_data(self) -> dict[str, any]:
-        data = {
-            "DeathLink": self.options.death_link.value,
-            "DeathLinkGameover": self.options.death_link_gameover.value,
-            "RupeeSpot": self.options.rupeesanity.value,
-            "GoalVaati": int(self.options.goal.value == Goal.option_vaati),
-        }
+    def fill_slot_data(self) -> dict[str, Any]:
+        self.slot_data["annoying_tod_bk_placement"] = self.annoying_tod_bk_placement
 
-        data |= self.options.as_dict(*SLOT_DATA_OPTIONS, casing="snake")
-        data |= get_option_data(self)
+        option_keys = [key for key in self.options.__dict__.keys() if key not in EXCLUDE_OPTIONS]
+        self.slot_data["options"] = self.options.as_dict(*option_keys)
+        self.slot_data |= get_option_data(self)
 
         # Setup prize location data for tracker to show element hints
         prizes = {
@@ -360,14 +365,14 @@ class MinishCapWorld(World):
             for loc_name, data_name in prizes.items():
                 placed_item = self.get_location(loc_name).item.name
                 if placed_item in self.item_name_groups["Elements"]:
-                    data[data_name] = item_table[placed_item].byte_ids[0]
+                    self.slot_data[data_name] = item_table[TMCItem(placed_item)].byte_ids[0]
                 else:
-                    data[data_name] = 0
+                    self.slot_data[data_name] = 0
         else:
             for slot_key in prizes.values():
-                data[slot_key] = 0
+                self.slot_data[slot_key] = 0
 
-        return data
+        return self.slot_data
 
     # playthrough is calculated
 
@@ -383,8 +388,8 @@ class MinishCapWorld(World):
     # output zip
     # endregion
 
-    def create_item(self, name: str | StrEnum) -> MinishCapItem:
-        item = item_table[name]
+    def create_item(self, name: str) -> MinishCapItem:
+        item = item_table[TMCItem(name)]
         classification = item.classification
         if name == TMCItem.HEART_CONTAINER and self.options.starting_hearts >= 10:
             classification = ItemClassification.useful
@@ -397,7 +402,7 @@ class MinishCapWorld(World):
         return MinishCapEvent(name, ItemClassification.progression, None, self.player)
 
     def get_filler_item_name(self) -> str:
-        if self.filler_items_distribution == None:
+        if self.filler_items_distribution is None:
             self.init_filler_items_distribution()
         return self.random.choices(
             tuple(self.filler_items_distribution), weights=self.filler_items_distribution.values()
@@ -413,4 +418,28 @@ class MinishCapWorld(World):
         if not self.options.traps_enabled:
             traps = self.item_name_groups["Traps"]
             for trap in traps:
-                self.filler_items_distribution.pop(trap)
+                self.filler_items_distribution[trap] = 0
+
+    # region UT stuffs
+
+    def prepare_ut(self):
+        re_gen_passthrough = getattr(self.multiworld, "re_gen_passthrough", {})
+        if not re_gen_passthrough and self.game not in re_gen_passthrough:
+            return
+        # Get the passed through slot data from the real generation
+        slot_data: dict[str, Any] = re_gen_passthrough[self.game]
+        self.annoying_tod_bk_placement = slot_data.get("annoying_tod_bk_placement", False)
+        slot_options: dict[str, Any] = slot_data.get("options", {})
+        # Set all your options here instead of getting them from the yaml
+        for key, value in slot_options.items():
+            opt: Option | None = getattr(self.options, key, None)
+            if opt is not None:
+                # You can also set .value directly but that won't work if you have OptionSets
+                setattr(self.options, key, opt.from_any(value))
+
+    @staticmethod
+    def interpret_slot_data(slot_data: dict[str, Any]) -> dict[str, Any]:
+        # Trigger a regen in UT
+        return slot_data
+
+    # endregion
