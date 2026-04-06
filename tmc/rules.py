@@ -59,6 +59,9 @@ from .options import (
     WindCrestMinish,
     WindCrestSmith,
     WindCrestSwamp,
+    CloudKinstoneMultiplier,
+    GoldFusionAccess,
+    SwampKinstoneMultiplier,
 )
 from .regions import get_region_map
 
@@ -284,6 +287,7 @@ class CanSplit(Rule[TMinishCapWorld], game=GAME):
         return (can_spin & (Has(TMCItem.PROGRESSIVE_SWORD, self.link_count + 1) | HasAny(*swords))).resolve(world)
 
 
+@dataclasses.dataclass
 class StupidToDWestIceblock(Rule[TMinishCapWorld], game=GAME):
     @override
     def _instantiate(self, world: MinishCapWorld) -> Rule.Resolved:
@@ -377,6 +381,47 @@ dhc_two_key_rule = Has(TMCItem.SMALL_KEY_DHC, count=FromMultiplierResolver(2, DH
 dhc_three_key_rule = Has(TMCItem.SMALL_KEY_DHC, count=FromMultiplierResolver(3, DHCKeyMultiplier))
 dhc_four_key_rule = Has(TMCItem.SMALL_KEY_DHC, count=FromMultiplierResolver(4, DHCKeyMultiplier))
 dhc_five_key_rule = Has(TMCItem.SMALL_KEY_DHC, count=FromMultiplierResolver(5, DHCKeyMultiplier))
+
+gold_fusion_combined_filter = [OptionFilter(GoldFusionAccess, GoldFusionAccess.option_combined)]
+gold_fusion_vanilla_filter = [OptionFilter(GoldFusionAccess, GoldFusionAccess.option_vanilla)]
+gold_fusion_open_filter = [OptionFilter(GoldFusionAccess, GoldFusionAccess.option_open)]
+
+clouds_all_can_fuse_rule = (
+    (
+        Has(TMCItem.KINSTONE_GOLD_CLOUD, count=FromMultiplierResolver(9, CloudKinstoneMultiplier))
+        & gold_fusion_combined_filter
+    )
+    | (
+        Has(TMCItem.KINSTONE_GOLD_CLOUD, count=FromMultiplierResolver(5, CloudKinstoneMultiplier))
+        & gold_fusion_vanilla_filter
+    )
+    | True_(options=gold_fusion_open_filter)
+)
+clouds_has_fusion_rule = HasAll(
+    TMCItem.FUSION_01, TMCItem.FUSION_02, TMCItem.FUSION_03, TMCItem.FUSION_04, TMCItem.FUSION_05
+) | True_(options=gold_fusion_open_filter)
+swamps_all_can_fuse_rule = (
+    Has(TMCItem.KINSTONE_GOLD_CLOUD, count=FromMultiplierResolver(9, CloudKinstoneMultiplier))
+    & gold_fusion_combined_filter
+) | (
+    Has(TMCItem.KINSTONE_GOLD_SWAMP, count=FromMultiplierResolver(3, SwampKinstoneMultiplier))
+    & gold_fusion_vanilla_filter
+)
+swamps_has_fusion_rule = HasAll(TMCItem.FUSION_06, TMCItem.FUSION_07, TMCItem.FUSION_08) | True_(
+    options=gold_fusion_open_filter
+)
+falls_can_fuse_rule = (
+    (
+        Has(TMCItem.KINSTONE_GOLD_CLOUD, count=FromMultiplierResolver(9, CloudKinstoneMultiplier))
+        & [gold_fusion_combined_filter[0], OptionFilter(WindCrestFalls, 1)]
+    )
+    | (
+        Has(TMCItem.KINSTONE_GOLD_CLOUD, count=FromMultiplierResolver(4, CloudKinstoneMultiplier))
+        & [gold_fusion_combined_filter[0], OptionFilter(WindCrestFalls, 0)]
+    )
+    | Has(TMCItem.KINSTONE_GOLD_FALLS)
+)
+falls_has_fusion_rule = Has(TMCItem.FUSION_09) | True_(options=gold_fusion_open_filter)
 
 
 bomb_dust_filter = [OptionFilter(Tricks, TMCTricks.BOMB_DUST, operator="contains")]
@@ -627,8 +672,8 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
     },
     TMCRegion.CASTOR_WILDS: {
         TMCRegion.WESTERN_WOODS: HasAny(TMCItem.PEGASUS_BOOTS, TMCItem.ROCS_CAPE) | has_bow,
-        TMCRegion.WIND_RUINS: Has(TMCItem.KINSTONE_GOLD_SWAMP, 3)
-        & (Has(TMCItem.ROCS_CAPE) | (Has(TMCItem.PEGASUS_BOOTS) & (swamp_crest | has_bow | Has(TMCItem.FLIPPERS)))),
+        TMCRegion.WIND_RUINS: swamps_has_fusion_rule
+        & (HasAny(TMCItem.ROCS_CAPE, TMCItem.PEGASUS_BOOTS) & (swamp_crest | has_bow | Has(TMCItem.FLIPPERS))),
     },
     TMCRegion.WIND_RUINS: {
         TMCRegion.DUNGEON_FOW_ENTRANCE: has_sword & has_weapon,  # redundancy for later logic improvements
@@ -645,7 +690,7 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
         TMCRegion.DUNGEON_RC_CLEAR: has_weapon & Has(TMCItem.SMALL_KEY_RC, 3) & Has(TMCItem.LANTERN),
     },
     TMCRegion.FALLS_ENTRANCE: {
-        TMCRegion.MIDDLE_FALLS: Has(TMCItem.KINSTONE_GOLD_FALLS) & dark_room,
+        TMCRegion.MIDDLE_FALLS: falls_has_fusion_rule & dark_room,
     },
     TMCRegion.MIDDLE_FALLS: {
         TMCRegion.FALLS_ENTRANCE: Has(TMCItem.FLIPPERS),
@@ -657,7 +702,7 @@ REGION_RULES: dict[TMCRegion, dict[TMCRegion, Rule[Any] | None]] = {
     },
     TMCRegion.CLOUDS: {
         TMCRegion.UPPER_FALLS: Has(TMCItem.GRIP_RING),
-        TMCRegion.WIND_TRIBE: Has(TMCItem.KINSTONE_GOLD_CLOUD, 5) & HasAny(TMCItem.MOLE_MITTS, TMCItem.ROCS_CAPE),
+        TMCRegion.WIND_TRIBE: clouds_has_fusion_rule & HasAny(TMCItem.MOLE_MITTS, TMCItem.ROCS_CAPE),
     },
     TMCRegion.WIND_TRIBE: {
         TMCRegion.CLOUDS: None,
@@ -1237,13 +1282,19 @@ LOCATION_RULES: dict[TMCLocation, Rule[Any] | None] = {
     TMCLocation.CRENEL_MELARI_CENTER_DIG: Has(TMCItem.MOLE_MITTS),
     # endregion
     # region Castor Wilds
+    TMCLocation.FUSION_06: swamps_all_can_fuse_rule
+    & (HasAny(TMCItem.ROCS_CAPE, TMCItem.PEGASUS_BOOTS) & (swamp_crest | has_bow | Has(TMCItem.FLIPPERS))),
+    TMCLocation.FUSION_07: swamps_all_can_fuse_rule
+    & (HasAny(TMCItem.ROCS_CAPE, TMCItem.PEGASUS_BOOTS) & (swamp_crest | has_bow | Has(TMCItem.FLIPPERS))),
+    TMCLocation.FUSION_08: swamps_all_can_fuse_rule
+    & (HasAny(TMCItem.ROCS_CAPE, TMCItem.PEGASUS_BOOTS) & (swamp_crest | has_bow | Has(TMCItem.FLIPPERS))),
     TMCLocation.SWAMP_BUTTERFLY_FUSION_ITEM: None,  # Fusion 10
     TMCLocation.SWAMP_CENTER_CAVE_DARKNUT_CHEST: has_weapon_boss,
     TMCLocation.SWAMP_CENTER_CHEST: has_bow,
     TMCLocation.SWAMP_GOLDEN_ROPE: has_sword,  # Fusion 49
     TMCLocation.SWAMP_NEAR_WATERFALL_CAVE_HP: And(has_bow, HasAny(TMCItem.ROCS_CAPE, TMCItem.FLIPPERS)),
     TMCLocation.SWAMP_WATERFALL_FUSION_DOJO_NPC:  # Fusion 0C
-    And(has_bow, Has(TMCItem.FLIPPERS)),
+    And(has_sword, has_bow, Has(TMCItem.FLIPPERS)),
     TMCLocation.SWAMP_NORTH_CAVE_CHEST: has_bow,
     TMCLocation.SWAMP_DIGGING_CAVE_LEFT_CHEST: Has(TMCItem.MOLE_MITTS),
     TMCLocation.SWAMP_DIGGING_CAVE_RIGHT_CHEST: Has(TMCItem.MOLE_MITTS),
@@ -1321,6 +1372,7 @@ LOCATION_RULES: dict[TMCLocation, Rule[Any] | None] = {
     # endregion
     # region Upper Falls
     # The first 3 are part of North Field logic, doesn't require falls fusion stone or lantern
+    TMCLocation.FUSION_09: falls_can_fuse_rule,
     TMCLocation.FALLS_ENTRANCE_HP: cape_extend,
     TMCLocation.FALLS_WATER_DIG_CAVE_FUSION_HP:  # Fusion 1F
     And(Has(TMCItem.MOLE_MITTS), cape_extend),
@@ -1357,6 +1409,11 @@ LOCATION_RULES: dict[TMCLocation, Rule[Any] | None] = {
         has_mirror_shield, options=[OptionFilter(Biggoron, Biggoron.option_mirror_shield)]
     )
     | has_shield,
+    TMCLocation.FUSION_01: clouds_all_can_fuse_rule,
+    TMCLocation.FUSION_02: clouds_all_can_fuse_rule,
+    TMCLocation.FUSION_03: clouds_all_can_fuse_rule,
+    TMCLocation.FUSION_04: clouds_all_can_fuse_rule,
+    TMCLocation.FUSION_05: clouds_all_can_fuse_rule,
     TMCLocation.CLOUDS_FREE_CHEST: None,
     TMCLocation.CLOUDS_NORTH_EAST_DIG_SPOT: Has(TMCItem.MOLE_MITTS),
     TMCLocation.CLOUDS_NORTH_KILL: And(HasAny(TMCItem.ROCS_CAPE, TMCItem.MOLE_MITTS), shark_kill),

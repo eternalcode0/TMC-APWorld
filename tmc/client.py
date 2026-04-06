@@ -161,7 +161,7 @@ class MinishCapClient(BizHawkClient):
         if ctx.server is None or ctx.server.socket.closed or ctx.slot_data is None:
             return
 
-        if ctx.slot_data["remote_items"] == Toggle.option_true and not ctx.items_handling & 0b010:
+        if ctx.slot_data["options"]["remote_items"] == Toggle.option_true and not ctx.items_handling & 0b010:
             ctx.items_handling = 0b111
             async_start(ctx.send_msgs([{"cmd": "ConnectUpdate", "items_handling": ctx.items_handling}]))
 
@@ -189,10 +189,10 @@ class MinishCapClient(BizHawkClient):
                 self.seed_verify = True
 
             if self.death_link_mode < 0:
-                if ctx.slot_data.get("death_link", 0) == 0:
+                if ctx.slot_data["options"].get("death_link", 0) == 0:
                     self.death_link_mode = 0
                     await ctx.update_death_link(False)
-                elif ctx.slot_data.get("death_link_gameover", 0) == 0:
+                elif ctx.slot_data["options"].get("death_link_gameover", 0) == 0:
                     self.death_link_mode = 1
                     self.previous_death_link = ctx.last_death_link
                     await ctx.update_death_link(True)

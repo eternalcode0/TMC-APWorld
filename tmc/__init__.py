@@ -26,6 +26,7 @@ from .locations import (
     GOAL_VAATI,
     POOL_DIG,
     POOL_ENEMY,
+    POOL_GOLD_FUSE,
     POOL_POT,
     POOL_RUPEE,
     POOL_WATER,
@@ -36,11 +37,12 @@ from .options import (
     EXCLUDE_OPTIONS,
     OPTION_GROUPS,
     PRESETS,
-    SLOT_DATA_OPTIONS,
     Biggoron,
     DHCAccess,
     FillerItemsDistribution,
+    FusionAccess,
     Goal,
+    GoldFusionAccess,
     MinishCapOptions,
     NonElementDungeons,
     PedReward,
@@ -60,6 +62,7 @@ class MinishCapWebWorld(WebWorld):
     bug_report_page = "https://github.com/eternalcode0/Archipelago/issues"
     option_groups = OPTION_GROUPS
     options_presets = PRESETS
+    rich_text_options_doc = True
     tutorials = [
         Tutorial(
             tutorial_name="Setup Guide",
@@ -140,6 +143,16 @@ class MinishCapWorld(World):
             enabled_pools.add(POOL_WATER)
         if options.shuffle_gold_enemies.value:
             enabled_pools.add(POOL_ENEMY)
+        if options.gold_fusion_access.value in GoldFusionAccess._can_fuse:
+            enabled_pools.add(POOL_GOLD_FUSE)
+
+        if options.gold_fusion_access.value in {FusionAccess.option_open, FusionAccess.option_closed}:
+            options.clouds_kinstone_multiplier.value = 0
+            options.swamp_kinstone_multiplier.value = 0
+            options.falls_kinstone_multiplier.value = 0
+        elif options.gold_fusion_access == FusionAccess.option_combined:
+            options.swamp_kinstone_multiplier.value = 0
+            options.falls_kinstone_multiplier.value = 0
 
         if options.figurine_amount < options.ped_figurines:
             options.figurine_amount.value = options.ped_figurines.value
@@ -268,6 +281,21 @@ class MinishCapWorld(World):
                 for prize_name in locations
                 for region_locations in location_groups[prize_name_to_region[prize_name]]
             )
+
+        # Fusions
+        if self.options.gold_fusion_access.value in {GoldFusionAccess.option_vanilla, GoldFusionAccess.option_combined}:
+            gold_fusion_pairs = {
+                TMCLocation.FUSION_01: TMCItem.FUSION_01,
+                TMCLocation.FUSION_02: TMCItem.FUSION_02,
+                TMCLocation.FUSION_03: TMCItem.FUSION_03,
+                TMCLocation.FUSION_04: TMCItem.FUSION_04,
+                TMCLocation.FUSION_05: TMCItem.FUSION_05,
+                TMCLocation.FUSION_06: TMCItem.FUSION_06,
+                TMCLocation.FUSION_07: TMCItem.FUSION_07,
+                TMCLocation.FUSION_08: TMCItem.FUSION_08,
+                TMCLocation.FUSION_09: TMCItem.FUSION_09}  # fmt: off
+            for gold_fusion_location, gold_fusion_item in gold_fusion_pairs.items():
+                self.get_location(gold_fusion_location).place_locked_item(self.create_item(gold_fusion_item.value))
 
         # Add in all progression and useful items
         self.item_pool = get_item_pool(self)

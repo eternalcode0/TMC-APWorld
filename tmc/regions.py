@@ -17,6 +17,9 @@ def excluded_locations_by_region(region: str, disabled_locations: set[str]):
 
 def create_regions(world: MinishCapWorld, disabled_locations: set[str], disabled_dungeons: set[str]):
     for region_key in TMCRegion:
+        # skipping placeholder region
+        if region_key == TMCRegion.FUSIONS:
+            continue
         create_region(world, region_key.value, excluded_locations_by_region(region_key.value, disabled_locations))
 
     dungeon_clears = {
@@ -62,4 +65,6 @@ def create_region(world: MinishCapWorld, name, locations):
 def get_region_map(world: MinishCapWorld, region_names: list[TMCRegion] | None = None) -> dict[TMCRegion, Region]:
     if region_names is None or len(region_names) == 0:
         region_names = list(TMCRegion)
-    return {region_name: world.get_region(region_name) for region_name in region_names}
+    return {
+        region_name: world.get_region(region_name) for region_name in region_names if region_name != TMCRegion.FUSIONS
+    }

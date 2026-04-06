@@ -41,6 +41,46 @@ class DungeonItem(Choice):
     alias_false = 3
 
 
+class CloudKinstoneMultiplier(Range):
+    """How many Cloud Kinstones should be added to your bag each time you get 1?
+    If gold combined kinstones are enabled, this setting will be used for the all gold kinstones.
+    This also reduces the number of kinstones in the pool to match the amount required rounded up.
+        Ex, When set to 2 without combined kinstones, there will be 3 Clouds Kinstones in the pool that each give you 2 Clouds Kinstones."""
+
+    display_name = "Cloud Kinstone Multiplier"
+    rich_text_doc = True
+
+    default = 1
+    range_start = 1
+    range_end = 9
+
+
+class SwampKinstoneMultiplier(Range):
+    """How many Swamp Kinstones should be added to your bag each time you get 1?
+    This setting is ignored if using combined gold kinstones"""
+
+    display_name = "Swamp Kinstone Multiplier"
+    rich_text_doc = True
+
+    default = 1
+    range_start = 1
+    range_end = 3
+
+
+class FallsKinstoneMultiplier(Range):
+    """How many Falls Kinstones should be added to your bag each time you get 1?
+    This setting is ignored if using combined gold kinstones"""
+
+    # This is only here for easy access when writing overriding for open/closed fusions and writing to the rom
+    visibility = Visibility.none
+    display_name = "Falls Kinstone Multiplier"
+    rich_text_doc = True
+
+    default = 1
+    range_start = 1
+    range_end = 1
+
+
 class FusionAccess(Choice):
     visibility = Visibility.none  # Temporary until fusion logic is written
     value: int
@@ -60,7 +100,7 @@ class RedFusionAccess(Choice):
     """
 
     visibility = Visibility.none
-    rich_text_doc = True
+
     value: int
     # option_closed = 0
     # option_vanilla = 1
@@ -79,7 +119,7 @@ class BlueFusionAccess(Choice):
     """
 
     visibility = Visibility.none
-    rich_text_doc = True
+
     value: int
     # option_closed = 0
     # option_vanilla = 1
@@ -98,7 +138,7 @@ class GreenFusionAccess(Choice):
     """
 
     visibility = Visibility.none
-    rich_text_doc = True
+
     value: int
     # option_closed = 0
     # option_vanilla = 1
@@ -116,14 +156,15 @@ class GoldFusionAccess(Choice):
     - Open: Gold Kinstones aren't in the item pool and all of their fusions are accessible
     """
 
-    visibility = Visibility.none
-    rich_text_doc = True
     value: int
     # option_closed = 0
     option_vanilla = 1
-    # option_combined = 2
-    # option_open = 3
+    option_combined = 2
+    option_open = 3
     default = option_vanilla
+
+    _can_fuse = {option_vanilla, option_combined}
+    _is_active = {option_vanilla, option_combined, option_open}
 
 
 class ProgressiveSword(DefaultOnToggle):
@@ -140,7 +181,6 @@ class ProgressiveSword(DefaultOnToggle):
     """
 
     display_name = "Progressive Sword"
-    rich_text_doc = True
 
 
 class ProgressiveBow(DefaultOnToggle):
@@ -172,7 +212,6 @@ class ProgressiveScroll(DefaultOnToggle):
     """
 
     display_name = "Progressive Spin Scroll"
-    rich_text_doc = True
 
 
 class Rupeesanity(Toggle):
@@ -181,7 +220,6 @@ class Rupeesanity(Toggle):
     """
 
     display_name = "Rupee-sanity"
-    rich_text_doc = True
 
 
 class ShufflePots(Toggle):
@@ -234,7 +272,7 @@ class ShuffleElements(Choice):
     """
 
     display_name = "Element Shuffle"
-    rich_text_doc = True
+
     default = 7
     option_vanilla = 2
     option_dungeon_prize = 7
@@ -258,7 +296,7 @@ class SmallKeys(DungeonItem):
     """
 
     display_name = "Small Key Shuffle"
-    rich_text_doc = True
+
     default = DungeonItem.option_own_dungeon
 
 
@@ -273,7 +311,7 @@ class BigKeys(DungeonItem):
     """
 
     display_name = "Big Key Shuffle"
-    rich_text_doc = True
+
     default = DungeonItem.option_own_dungeon
 
 
@@ -289,7 +327,7 @@ class DungeonMaps(DungeonItem):
     """
 
     display_name = "Dungeon Maps Shuffle"
-    rich_text_doc = True
+
     option_start_with = 1
     default = DungeonItem.option_own_dungeon
 
@@ -306,7 +344,7 @@ class DungeonCompasses(DungeonItem):
     """
 
     display_name = "Dungeon Compasses Shuffle"
-    rich_text_doc = True
+
     option_start_with = 1
     default = DungeonItem.option_own_dungeon
 
@@ -385,7 +423,7 @@ class Goal(Choice):
     """
 
     display_name = "Goal"
-    rich_text_doc = True
+
     option_vaati = 0
     option_pedestal = 1
     # option_requirements = 2  'Requirements': Goal the moment each ped requirement is met. No need to enter sanctuary.
@@ -402,7 +440,7 @@ class DHCAccess(Choice):
     """
 
     display_name = "DHC Access"
-    rich_text_doc = True
+
     option_closed = 0
     option_pedestal = 1
     option_open = 2
@@ -415,7 +453,7 @@ class PedDungeons(Range):
     """How many dungeons are required to activate Pedestal?"""
 
     display_name = "Required Dungeons to Pedestal"
-    rich_text_doc = True
+
     default = 0
     range_start = 0
     range_end = 6
@@ -425,7 +463,7 @@ class PedElements(Range):
     """How many elements are required to activate Pedestal?"""
 
     display_name = "Required Elements to Pedestal"
-    rich_text_doc = True
+
     default = 4
     range_start = 0
     range_end = 4
@@ -439,7 +477,7 @@ class PedSword(Range):
     neither 'White Sword (Three Elements)' nor 'Four Sword' would count towards the pedestal."""
 
     display_name = "Required Swords to Pedestal"
-    rich_text_doc = True
+
     default = 5
     range_start = 0
     range_end = 5
@@ -502,7 +540,7 @@ class WeaponBomb(Choice):
     """
 
     display_name = "Bombs are considered Weapons"
-    rich_text_doc = True
+
     default = 0
     option_no = 0
     option_yes = 1
@@ -586,7 +624,7 @@ class Tricks(OptionSet):
     """
 
     display_name = "Tricks"
-    rich_text_doc = True
+
     valid_keys = ALL_TRICKS
 
 
@@ -797,7 +835,7 @@ class ReplicaToDBossDoor(Toggle):
     """
 
     display_name = "Replica ToD Boss Door"
-    rich_text_doc = True
+
     default = True
 
 
@@ -805,7 +843,7 @@ class OcarinaOnSelect(Toggle):
     """Should your Select button be bound to use the Ocarina? Prevents Ezlo Buffering glitches"""
 
     display_name = "Ocarina on Select"
-    rich_text_doc = True
+
     default = True
 
 
@@ -813,7 +851,7 @@ class BootsOnL(Toggle):
     """Should your L button be bound to use the Pegasus Boots?"""
 
     display_name = "Boots on L"
-    rich_text_doc = True
+
     default = True
 
 
@@ -821,7 +859,7 @@ class BootsAsMinish(Toggle):
     """Should the Pegasus Boots still work while you're minish size?"""
 
     display_name = "Boots as Minish"
-    rich_text_doc = True
+
     default = False
 
 
@@ -832,7 +870,7 @@ class BigOctorokManipulation(Toggle):
     """
 
     display_name = "Big Octorok Manipulation"
-    rich_text_doc = True
+
     default = True
 
 
@@ -844,7 +882,6 @@ class RemoteItems(Toggle):
     """
 
     display_name = "Remote Items"
-    rich_text_doc = True
 
 
 class DWSKeyMultiplier(Range):
@@ -980,6 +1017,9 @@ class MinishCapOptions(PerGameCommonOptions):
     heart_containers: HeartContainerAmount
     piece_of_hearts: PieceOfHeartAmount
     # Multipliers
+    clouds_kinstone_multiplier: CloudKinstoneMultiplier
+    swamp_kinstone_multiplier: SwampKinstoneMultiplier
+    falls_kinstone_multiplier: FallsKinstoneMultiplier
     dws_key_multiplier: DWSKeyMultiplier
     cof_key_multiplier: CoFKeyMultiplier
     fow_key_multiplier: FoWKeyMultiplier
@@ -1012,11 +1052,12 @@ class MinishCapOptions(PerGameCommonOptions):
 
 
 def get_option_data(world: "MinishCapWorld"):
-    world_version = None
-    options = world.options
     """Template for the options that will likely be added in the future.
     Intended for trackers to properly match the logic between the standalone randomizer (TMCR) and AP
     """
+    world_version = None
+    options = world.options
+
     vaati_dhc_map = {
         (Goal.option_vaati, DHCAccess.option_closed): 0,
         (Goal.option_vaati, DHCAccess.option_pedestal): 1,
@@ -1195,6 +1236,7 @@ OPTION_GROUPS = [
             Traps,
         ],
     ),
+    OptionGroup("Fusions", [GoldFusionAccess, CloudKinstoneMultiplier, SwampKinstoneMultiplier]),
     OptionGroup(
         "Fast Travel",
         [

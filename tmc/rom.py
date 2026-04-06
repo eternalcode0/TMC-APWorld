@@ -363,6 +363,63 @@ def write_tokens(world: "MinishCapWorld", patch: MinishCapProcedurePatch) -> Non
     patch.write_token(APTokenTypes.WRITE, flag_group_by_name[TMCFlagGroup.LINKS_CURRENT_HEALTH], bytes([starting_hp]))
     patch.write_token(APTokenTypes.WRITE, flag_group_by_name[TMCFlagGroup.LINKS_MAX_HEALTH], bytes([starting_hp]))
 
+    # Combined Kinstones
+    if options.gold_fusion_access.value == FusionAccess.option_combined:
+        patch.write_token(APTokenTypes.WRITE, 0x0C9415, bytes([8]))
+        patch.write_token(APTokenTypes.WRITE, 0x0C9419, bytes([1]))
+        patch.write_token(APTokenTypes.WRITE, 0x0C941D, bytes([8]))
+        patch.write_token(APTokenTypes.WRITE, 0x0C9421, bytes([1]))
+        patch.write_token(APTokenTypes.WRITE, 0x0C9425, bytes([8]))
+        patch.write_token(APTokenTypes.WRITE, 0x0C9429, bytes([1]))
+        patch.write_token(APTokenTypes.WRITE, 0x0C942D, bytes([8]))
+        patch.write_token(APTokenTypes.WRITE, 0x0C9431, bytes([1]))
+    if options.gold_fusion_access.value == FusionAccess.option_open:
+        crestor_wilds_block = OVERWORLD_FLAGS[TMCEvent.SWAMP_RUINS_BLOCK]
+        patch.write_token(
+            APTokenTypes.WRITE,
+            flag_group_by_name[TMCFlagGroup.COMPLETED_FUSIONS],
+            bytes([0xFE, 0xFF]),
+        )
+        patch.write_token(APTokenTypes.OR_8, crestor_wilds_block.offset, crestor_wilds_block.data)
+
+    # Multipliers
+    patch.write_token(
+        APTokenTypes.WRITE,
+        0xFF0530,
+        bytes(
+            [
+                options.clouds_kinstone_multiplier.value,
+                options.clouds_kinstone_multiplier.value,
+                options.clouds_kinstone_multiplier.value,
+                options.clouds_kinstone_multiplier.value,
+                options.clouds_kinstone_multiplier.value,
+                options.swamp_kinstone_multiplier.value,
+                options.swamp_kinstone_multiplier.value,
+                options.swamp_kinstone_multiplier.value,
+                options.falls_kinstone_multiplier.value,
+                0,  # Red W
+                0,  # Red V
+                0,  # Red E
+                0,  # Blue L
+                0,  # Blue S
+                0,  # Green C
+                0,  # Green G
+                0,  # Green P
+                0xFF,  # spacers for an ALIGN 4
+                0xFF,  # spacers for an ALIGN 4
+                0xFF,  # spacers for an ALIGN 4
+                1,  # universal key
+                options.dws_key_multiplier.value,
+                options.cof_key_multiplier.value,
+                options.fow_key_multiplier.value,
+                options.tod_key_multiplier.value,
+                options.pow_key_multiplier.value,
+                options.dhc_key_multiplier.value,
+                options.rc_key_multiplier.value,
+            ]
+        ),
+    )
+
     # Patch Items into Locations
     for location_name, loc in location_table_by_name.items():
         if loc.rom_addr is None:

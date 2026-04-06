@@ -5133,31 +5133,94 @@ all_locations: list[LocationData] = [
     # 6029553-6029600
     # region Gold Fusions
     LocationData(
-        6029601, TMCLocation.FUSION_01, TMCRegion.FUSIONS, TMCItem.FUSION_01, None, None, None, pools={POOL_GOLD_FUSE}
+        6029601,
+        TMCLocation.FUSION_01,
+        TMCRegion.CLOUDS,
+        TMCItem.FUSION_01,
+        None,
+        (0x2C81, 0x02),
+        0x0208,
+        pools={POOL_GOLD_FUSE},
     ),
     LocationData(
-        6029602, TMCLocation.FUSION_02, TMCRegion.FUSIONS, TMCItem.FUSION_02, None, None, None, pools={POOL_GOLD_FUSE}
+        6029602,
+        TMCLocation.FUSION_02,
+        TMCRegion.CLOUDS,
+        TMCItem.FUSION_02,
+        None,
+        (0x2C81, 0x04),
+        0x0208,
+        pools={POOL_GOLD_FUSE},
     ),
     LocationData(
-        6029603, TMCLocation.FUSION_03, TMCRegion.FUSIONS, TMCItem.FUSION_03, None, None, None, pools={POOL_GOLD_FUSE}
+        6029603,
+        TMCLocation.FUSION_03,
+        TMCRegion.CLOUDS,
+        TMCItem.FUSION_03,
+        None,
+        (0x2C81, 0x08),
+        0x0208,
+        pools={POOL_GOLD_FUSE},
     ),
     LocationData(
-        6029604, TMCLocation.FUSION_04, TMCRegion.FUSIONS, TMCItem.FUSION_04, None, None, None, pools={POOL_GOLD_FUSE}
+        6029604,
+        TMCLocation.FUSION_04,
+        TMCRegion.CLOUDS,
+        TMCItem.FUSION_04,
+        None,
+        (0x2C81, 0x10),
+        0x0208,
+        pools={POOL_GOLD_FUSE},
     ),
     LocationData(
-        6029605, TMCLocation.FUSION_05, TMCRegion.FUSIONS, TMCItem.FUSION_05, None, None, None, pools={POOL_GOLD_FUSE}
+        6029605,
+        TMCLocation.FUSION_05,
+        TMCRegion.CLOUDS,
+        TMCItem.FUSION_05,
+        None,
+        (0x2C81, 0x20),
+        0x0208,
+        pools={POOL_GOLD_FUSE},
     ),
     LocationData(
-        6029606, TMCLocation.FUSION_06, TMCRegion.FUSIONS, TMCItem.FUSION_06, None, None, None, pools={POOL_GOLD_FUSE}
+        6029606,
+        TMCLocation.FUSION_06,
+        TMCRegion.CASTOR_WILDS,
+        TMCItem.FUSION_06,
+        None,
+        (0x2C81, 0x40),
+        0x0004,
+        pools={POOL_GOLD_FUSE},
     ),
     LocationData(
-        6029607, TMCLocation.FUSION_07, TMCRegion.FUSIONS, TMCItem.FUSION_07, None, None, None, pools={POOL_GOLD_FUSE}
+        6029607,
+        TMCLocation.FUSION_07,
+        TMCRegion.CASTOR_WILDS,
+        TMCItem.FUSION_07,
+        None,
+        (0x2C81, 0x80),
+        0x0004,
+        pools={POOL_GOLD_FUSE},
     ),
     LocationData(
-        6029608, TMCLocation.FUSION_08, TMCRegion.FUSIONS, TMCItem.FUSION_08, None, None, None, pools={POOL_GOLD_FUSE}
+        6029608,
+        TMCLocation.FUSION_08,
+        TMCRegion.CASTOR_WILDS,
+        TMCItem.FUSION_08,
+        None,
+        (0x2C82, 0x01),
+        0x0004,
+        pools={POOL_GOLD_FUSE},
     ),
     LocationData(
-        6029609, TMCLocation.FUSION_09, TMCRegion.FUSIONS, TMCItem.FUSION_09, None, None, None, pools={POOL_GOLD_FUSE}
+        6029609,
+        TMCLocation.FUSION_09,
+        TMCRegion.FALLS_ENTRANCE,
+        TMCItem.FUSION_09,
+        None,
+        (0x2C82, 0x02),
+        0x000A,
+        pools={POOL_GOLD_FUSE},
     ),
     # endregion
     # region Red Fusions
@@ -6106,11 +6169,14 @@ events: dict[tuple[int, int], str] = {
     (0x2D8A, 0x40): "tod_west_lever",
 }
 
+
 def loc_name_filter_region(region_list: Iterable[TMCRegion]):
     return {loc.name.value for loc in all_locations if loc.region in region_list}
 
+
 def loc_name_pool(pool: Iterable[str]):
     return {loc.name.value for loc in all_locations if loc.pools.issubset(pool) and len(loc.pools)}
+
 
 location_table_by_name: dict[str, LocationData] = {location.name: location for location in all_locations}
 location_groups: dict[str, set[str]] = {
