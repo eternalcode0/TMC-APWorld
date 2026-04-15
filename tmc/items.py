@@ -528,6 +528,8 @@ item_table: dict[TMCItem, ItemData] = {
     TMCItem.FUSION_07: ItemData(ItemClassification.progression, (0xF2, 0x07)),
     TMCItem.FUSION_08: ItemData(ItemClassification.progression, (0xF2, 0x08)),
     TMCItem.FUSION_09: ItemData(ItemClassification.progression, (0xF2, 0x09)),
+    # Out of logic for UT
+    TMCItem.OOL: ItemData(ItemClassification.progression, (0xFF, 0xFF)),
 }
 
 item_frequencies: dict[str, int] = {

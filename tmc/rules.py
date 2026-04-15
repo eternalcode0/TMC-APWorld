@@ -30,6 +30,7 @@ from .dungeons import ELEMENTS
 from .locations import get_location_map
 from .options import (
     Biggoron,
+    CloudKinstoneMultiplier,
     CoFKeyMultiplier,
     DHCAccess,
     DHCKeyMultiplier,
@@ -38,9 +39,11 @@ from .options import (
     DWSKeyMultiplier,
     FoWKeyMultiplier,
     Goal,
+    GoldFusionAccess,
     GoronJPPrices,
     PoWKeyMultiplier,
     RCKeyMultiplier,
+    SwampKinstoneMultiplier,
     ToDKeyMultiplier,
     Tricks,
     WarpCoF,
@@ -59,9 +62,6 @@ from .options import (
     WindCrestMinish,
     WindCrestSmith,
     WindCrestSwamp,
-    CloudKinstoneMultiplier,
-    GoldFusionAccess,
-    SwampKinstoneMultiplier,
 )
 from .regions import get_region_map
 

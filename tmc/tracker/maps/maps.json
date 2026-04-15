@@ -1,0 +1,44 @@
+[
+  {
+    "name": "map",
+    "img": "images/maps/overworld.png",
+    "location_size": 65
+  },
+  {
+    "name": "mines",
+    "img": "images/maps/mine.png",
+    "location_size": 50
+  },
+  {
+    "name": "dws",
+    "img": "images/maps/dws.png",
+    "location_size": 50
+  },
+  {
+    "name": "cof",
+    "img": "images/maps/cof.png",
+    "location_size": 50
+  },
+  {
+    "name": "fow",
+    "img": "images/maps/fow.png",
+    "location_size": 50
+  },
+  {
+    "name": "tod",
+    "img": "images/maps/tod.png"
+  },
+  {
+    "name": "rc",
+    "img": "images/maps/rc.png",
+    "location_size": 50
+  },
+  {
+    "name": "pow",
+    "img": "images/maps/pow.png"
+  },
+  {
+    "name": "dhc",
+    "img": "images/maps/dhc.png"
+  }
+]

@@ -55,6 +55,38 @@ from .rom import MinishCapProcedurePatch, write_tokens
 tmc_logger = logging.getLogger(GAME)
 
 
+def map_page_index(room_area: int) -> int:
+    """Takes the room_area from data storage and returns the index of the map entry in maps.json"""
+    if room_area is None:
+        return 0
+    area = int("0018", base=16) << 1
+    print(area)
+    area_map = {
+        0x10: 1,
+        0x18: 4,
+        0x20: 1,
+        0x2C: 4,
+        48: 2,
+        0x49: 2,
+        0x50: 3,
+        0x51: 3,
+        0x58: 4,
+        0x59: 4,
+        0x60: 5,
+        0x68: 6,
+        0x70: 7,
+        0x71: 7,
+        0x78: 8,
+        0x88: 8,
+        0x89: 8,
+        0x8A: 8,
+        0x8B: 8,
+        0x8C: 8,
+        0x8D: 8,
+    }
+    return area_map.get(area, 0)
+
+
 class MinishCapWebWorld(WebWorld):
     """Minish Cap Webpage configuration"""
 
@@ -93,8 +125,13 @@ class MinishCapSettings(settings.Group):
         description = "Minish Cap ROM File"
         md5s = ["2af78edbe244b5de44471368ae2b6f0b"]
 
+    class UTPackPath(settings.FilePath):
+        required = False
+        ut_dialog_name = "Select Poptracker pack"
+
     rom_file: RomFile = RomFile(RomFile.copy_to)
     rom_start: bool = True
+    ut_poptracker_path: UTPackPath | str = UTPackPath()
 
 
 class MinishCapWorld(World):
@@ -121,6 +158,21 @@ class MinishCapWorld(World):
     annoying_tod_bk_placement: bool = False
     ut_can_gen_without_yaml = True
     is_ut: bool
+    glitches_item_name = TMCItem.OOL
+    tracker_world: ClassVar = {
+        "map_page_folder": "tracker",
+        "external_pack_key": "ut_poptracker_path",
+        "map_page_maps": "maps/maps.json",
+        "map_page_locations": "locations/locations.json",
+        "map_page_setting_key": "tmc_room_{team}_{player}",
+        "map_page_index": map_page_index,
+        "poptracker_name_mapping": {
+            "South Field - Smith's House/Chest": 6029000,
+            "South Field - Smith's House/Left Floor Item": 6029001,
+            "South Field - Smith's House/Right Floor Item": 6029002,
+            "Town - Cafe/Lady Next to Cafe - Gift": 6029022,
+        },
+    }
 
     # region APWorld Generation
     # sorted in execution order

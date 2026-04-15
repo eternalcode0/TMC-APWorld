@@ -23,6 +23,7 @@ class MinishCapRegion(Region):
 
 
 class TMCItem(StrEnum):
+    OOL = "OUT_OF_LOGIC"
     INACCESSIBLE = "Inaccessible"
     SMITHS_SWORD = "Smith's Sword"
     WHITE_SWORD_GREEN = "White Sword"

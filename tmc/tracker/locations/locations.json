@@ -1,0 +1,43 @@
+[
+  {
+    "name": "Town - Cafe",
+    "map_locations": [
+      {
+        "map": "map",
+        "x": 1240,
+        "y": 1490
+      }
+    ],
+    "sections": [
+      {
+        "name": "Lady Next to Cafe - Gift",
+        "item_count": 1
+      },
+      {
+        "name": "Fuser Mama",
+        "hosted_item": "fusions34",
+        "visibility_rules": ["$has|fusiongreen_vanilla"]
+      },
+      {
+        "name": "Fuser Hurdy-gurdy Man 1",
+        "hosted_item": "fusions32",
+        "visibility_rules": ["$has|fusionblue_vanilla"]
+      }
+    ]
+  },
+  {
+    "name": "South Field - Smith's House",
+    "map_locations": [
+      {
+        "map": "map",
+        "x": 1430,
+        "y": 1900
+      }
+    ],
+    "sections": [
+      { "name": "Chest 1" },
+      { "name": "Left Floor Item" },
+      { "name": "Right Floor Item" }
+    ]
+  }
+]
